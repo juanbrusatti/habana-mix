@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
+import { HeroEditor } from '@/components/admin/hero-editor'
 import { toast } from 'sonner'
 import { Lock, Unlock } from 'lucide-react'
 
@@ -153,16 +154,21 @@ export default function AdminDashboard() {
             </div>
           </TabsContent>
 
-          <TabsContent value="general" className="space-y-4">
+          <TabsContent value="general" className="space-y-6">
             <div className="p-6 border rounded-lg">
               <h3 className="text-xl font-semibold mb-4">Edición General</h3>
-              <p className="text-muted-foreground mb-4">
-                Aquí podrás editar elementos generales del sitio como el head, footer y otros componentes.
+              <p className="text-muted-foreground mb-6">
+                Aquí podrás editar elementos generales del sitio.
               </p>
-              <div className="p-4 bg-muted/50 rounded-lg">
-                <p className="text-sm text-muted-foreground">
-                  Próximamente se agregarán los formularios de edición.
-                </p>
+              
+              <div className="space-y-6">
+                <HeroEditor />
+                
+                <div className="p-4 bg-muted/50 rounded-lg">
+                  <p className="text-sm text-muted-foreground">
+                    Próximamente se agregarán más opciones de edición.
+                  </p>
+                </div>
               </div>
             </div>
           </TabsContent>

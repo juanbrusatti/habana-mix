@@ -3,6 +3,33 @@
 import { useEffect, useRef, useState } from 'react'
 import { ChevronDown } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { supabase } from '@/lib/supabase'
+
+interface HeroConfig {
+  badge_text: string
+  title: string
+  subtitle: string
+  image_url: string
+  title_color: string
+  subtitle_color: string
+  badge_color: string
+  badge_text_color: string
+  title_size: string
+  subtitle_size: string
+}
+
+const defaultConfig: HeroConfig = {
+  badge_text: 'Academia de baile cubano',
+  title: 'Habana Mix',
+  subtitle: 'Donde el sabor de La Habana se aprende bailando. Salsa cubana, timba, bachata y rueda de casino.',
+  image_url: '/images/hero-habana.png',
+  title_color: '#ffffff',
+  subtitle_color: 'rgba(255,255,255,0.7)',
+  badge_color: 'rgba(255,255,255,0.1)',
+  badge_text_color: '#ffffff',
+  title_size: 'text-9xl',
+  subtitle_size: 'text-lg'
+}
 
 /**
  * Hero con parallax multicapa.
@@ -13,6 +40,29 @@ import { Button } from '@/components/ui/button'
 export function Hero() {
   const sectionRef = useRef<HTMLElement>(null)
   const [progress, setProgress] = useState(0)
+  const [config, setConfig] = useState<HeroConfig>(defaultConfig)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    loadConfig()
+  }, [])
+
+  const loadConfig = async () => {
+    try {
+      const { data, error } = await supabase.rpc('get_hero_config')
+      if (error) {
+        console.error('Error cargando configuración del hero:', error)
+        return
+      }
+      if (data) {
+        setConfig(data as HeroConfig)
+      }
+    } catch (error) {
+      console.error('Error cargando configuración:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   useEffect(() => {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
@@ -42,6 +92,33 @@ export function Hero() {
       ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
 
+  if (loading) {
+    return (
+      <header className="relative isolate flex h-[100svh] min-h-[560px] w-full items-end overflow-hidden">
+        <div className="absolute inset-0 -z-20 bg-muted" />
+        <div className="relative z-10 w-full px-6 pb-16 sm:px-8 md:pb-24">
+          <div className="mx-auto flex max-w-5xl flex-col items-center text-center">
+            <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+          </div>
+        </div>
+      </header>
+    )
+  }
+
+  const getTailwindSize = (size: string) => {
+    const sizeMap: Record<string, string> = {
+      'text-6xl': 'text-6xl',
+      'text-7xl': 'text-7xl', 
+      'text-8xl': 'text-8xl',
+      'text-9xl': 'text-9xl',
+      'text-sm': 'text-sm',
+      'text-base': 'text-base',
+      'text-lg': 'text-lg',
+      'text-xl': 'text-xl'
+    }
+    return sizeMap[size] || size
+  }
+
   return (
     <header
       ref={sectionRef}
@@ -64,7 +141,7 @@ export function Hero() {
         </video>
         */}
         <img
-          src="/images/hero-habana.png"
+          src={config.image_url}
           alt="Pareja bailando salsa cubana en una calle de La Habana de noche"
           className="animate-ken-burns h-full w-full object-cover object-center"
           fetchPriority="high"
@@ -90,18 +167,29 @@ export function Hero() {
         }}
       >
         <div className="mx-auto flex max-w-5xl flex-col items-center text-center">
-          <span className="border-primary/30 bg-primary/10 text-primary mb-5 inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-[11px] font-medium tracking-[0.22em] uppercase backdrop-blur-md">
-            Academia de baile cubano
+          <span 
+            className="mb-5 inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-[11px] font-medium tracking-[0.22em] uppercase backdrop-blur-md"
+            style={{
+              backgroundColor: config.badge_color,
+              borderColor: config.badge_text_color + '30',
+              color: config.badge_text_color
+            }}
+          >
+            {config.badge_text}
           </span>
 
-          <h1 className="font-serif text-6xl leading-[0.88] font-semibold tracking-tight text-balance sm:text-7xl md:text-8xl lg:text-9xl">
-            <span className="text-gradient-habana">Habana</span>{' '}
-            <span className="text-foreground">Mix</span>
+          <h1 
+            className={`font-serif leading-[0.88] font-semibold tracking-tight text-balance sm:text-7xl md:text-8xl ${getTailwindSize(config.title_size)}`}
+            style={{ color: config.title_color }}
+          >
+            {config.title}
           </h1>
 
-          <p className="text-foreground/70 mt-5 max-w-md text-base leading-relaxed text-pretty sm:max-w-lg sm:text-lg">
-            Donde el sabor de La Habana se aprende bailando. Salsa cubana,
-            timba, bachata y rueda de casino.
+          <p 
+            className={`mt-5 max-w-md leading-relaxed text-pretty sm:max-w-lg ${getTailwindSize(config.subtitle_size)}`}
+            style={{ color: config.subtitle_color }}
+          >
+            {config.subtitle}
           </p>
 
           <div className="mt-8 flex w-full max-w-sm flex-col gap-3 sm:max-w-none sm:flex-row sm:justify-center">

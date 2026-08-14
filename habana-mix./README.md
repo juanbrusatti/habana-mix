@@ -33,6 +33,9 @@ En el dashboard de Supabase, ve al SQL Editor y ejecuta los scripts en orden:
 1. `scripts/001_habana_mix_schema.sql` - Esquema completo de la base de datos
 2. `migrate/002_admin_credentials_table.sql` - Tabla de credenciales de administrador
 3. `migrate/003_create_initial_admin.sql` - Crear usuario administrador inicial
+4. `migrate/004_add_salt_column.sql` - Agregar columna salt a tabla existente
+5. `migrate/005_hero_config_table.sql` - Tabla de configuración del hero
+6. `migrate/006_admin_storage_policies.sql` - Políticas de storage para admin
 
 **Credenciales iniciales del administrador:**
 - Usuario: `administrador`
