@@ -1,0 +1,116 @@
+/**
+ * Tipos que espejan 1:1 el esquema de Supabase (ver scripts/001_habana_mix_schema.sql).
+ * Cuando conectes Supabase, estos tipos siguen siendo válidos.
+ */
+
+/** Tema de color para personalizar cada card. Coincide con el enum `card_theme` en SQL. */
+export type CardTheme = 'amber' | 'coral' | 'teal' | 'noche' | 'crema'
+
+/** Layout visual de la card. Coincide con el enum `card_layout` en SQL. */
+export type CardLayout = 'overlay' | 'split' | 'minimal'
+
+export type EventStatus = 'draft' | 'published' | 'archived'
+
+export interface AcademyEvent {
+  id: string
+  slug: string
+  title: string
+  subtitle: string | null
+  description: string | null
+  image_url: string | null
+  starts_at: string
+  ends_at: string | null
+  location: string | null
+  price_label: string | null
+  cta_label: string | null
+  cta_url: string | null
+  /* --- Personalización libre de la card --- */
+  theme: CardTheme
+  layout: CardLayout
+  /** Etiquetas superiores tipo "Timba en vivo", "Cupos limitados" */
+  tags: string[]
+  /** Destaca la card a ancho completo en el carrusel/grid */
+  featured: boolean
+  /** Intensidad del degradado sobre la imagen (0-100) */
+  overlay_opacity: number
+  /** Sobrescribe el color del tema si el admin quiere algo puntual */
+  accent_color: string | null
+  status: EventStatus
+  sort_order: number
+}
+
+export type ClassLevel = 'principiante' | 'intermedio' | 'avanzado' | 'todos'
+
+export interface DanceClass {
+  id: string
+  slug: string
+  title: string
+  style: string
+  level: ClassLevel
+  description: string | null
+  image_url: string | null
+  instructor: string | null
+  /** Horarios legibles: ["Lunes 19:00", "Jueves 20:30"] */
+  schedule: string[]
+  duration_min: number | null
+  price_amount: number
+  price_currency: string
+  price_period: string | null
+  capacity: number | null
+  spots_left: number | null
+  theme: CardTheme
+  layout: CardLayout
+  tags: string[]
+  featured: boolean
+  overlay_opacity: number
+  accent_color: string | null
+  status: EventStatus
+  sort_order: number
+}
+
+export type EnrollmentStatus = 'pending' | 'approved' | 'rejected'
+
+export interface Enrollment {
+  id: string
+  user_id: string | null
+  class_id: string
+  full_name: string
+  email: string
+  phone: string | null
+  receipt_url: string | null
+  payment_method: string | null
+  payment_reference: string | null
+  notes: string | null
+  status: EnrollmentStatus
+  /** Código único que el alumno presenta en la academia (se genera al aprobar) */
+  access_code: string | null
+  reviewed_at: string | null
+  admin_note: string | null
+  created_at: string
+}
+
+/** Contenido editable por el admin: mapa, quiénes somos, footer, hero. */
+export interface SiteContent {
+  key: string
+  value: Record<string, unknown>
+}
+
+export interface LocationContent {
+  title: string
+  address: string
+  city: string
+  directions_note: string
+  map_embed_url: string
+  map_link_url: string
+  hours: { label: string; value: string }[]
+  phone: string
+  whatsapp: string
+}
+
+export interface AboutContent {
+  title: string
+  eyebrow: string
+  paragraphs: string[]
+  image_url: string
+  stats: { value: string; label: string }[]
+}

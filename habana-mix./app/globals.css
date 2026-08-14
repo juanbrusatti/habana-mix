@@ -1,0 +1,171 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-playfair), ui-serif, Georgia, serif;
+
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+:root,
+.dark {
+  color-scheme: dark;
+
+  /* Neutrals */
+  --background: oklch(0.16 0.015 40);
+  --foreground: oklch(0.96 0.012 85);
+  --card: oklch(0.21 0.018 40);
+  --card-foreground: oklch(0.96 0.012 85);
+  --popover: oklch(0.19 0.018 40);
+  --popover-foreground: oklch(0.96 0.012 85);
+  --muted: oklch(0.26 0.018 40);
+  --muted-foreground: oklch(0.72 0.02 70);
+
+  /* Primary: ámbar habanero */
+  --primary: oklch(0.79 0.152 68);
+  --primary-foreground: oklch(0.18 0.03 45);
+
+  /* Accent: coral cubano */
+  --accent: oklch(0.58 0.19 25);
+  --accent-foreground: oklch(0.97 0.01 85);
+
+  /* Secondary: verde mar / turquesa caribe */
+  --secondary: oklch(0.62 0.11 185);
+  --secondary-foreground: oklch(0.16 0.02 40);
+
+  --destructive: oklch(0.58 0.2 25);
+  --border: oklch(0.96 0.012 85 / 12%);
+  --input: oklch(0.96 0.012 85 / 16%);
+  --ring: oklch(0.79 0.152 68);
+
+  --radius: 0.875rem;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    -webkit-tap-highlight-color: transparent;
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    overflow-x: hidden;
+  }
+}
+
+@utility text-gradient-habana {
+  background-image: linear-gradient(
+    100deg,
+    var(--primary) 0%,
+    oklch(0.72 0.17 45) 55%,
+    var(--accent) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Fina textura de grano para dar sensación premium */
+@utility grain-overlay {
+  position: relative;
+}
+
+/* Reveal on scroll */
+.reveal {
+  opacity: 0;
+  transform: translateY(28px) scale(0.985);
+  transition:
+    opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+.reveal[data-visible='true'] {
+  opacity: 1;
+  transform: none;
+}
+
+@keyframes ken-burns {
+  0% {
+    transform: scale(1.08) translate3d(0, 0, 0);
+  }
+  100% {
+    transform: scale(1.22) translate3d(-1.5%, -1.5%, 0);
+  }
+}
+.animate-ken-burns {
+  animation: ken-burns 26s ease-in-out infinite alternate;
+}
+
+@keyframes marquee-x {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+.animate-marquee {
+  animation: marquee-x 32s linear infinite;
+}
+
+@keyframes scroll-hint {
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.35;
+  }
+  50% {
+    transform: translateY(9px);
+    opacity: 1;
+  }
+}
+.animate-scroll-hint {
+  animation: scroll-hint 2.2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+  .animate-ken-burns,
+  .animate-marquee,
+  .animate-scroll-hint {
+    animation: none !important;
+  }
+  html {
+    scroll-behavior: auto;
+  }
+}
