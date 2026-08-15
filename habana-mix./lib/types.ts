@@ -22,6 +22,7 @@ export interface AcademyEvent {
   ends_at: string | null
   location: string | null
   price_label: string | null
+  is_free: boolean
   cta_label: string | null
   cta_url: string | null
   /* --- Personalización libre de la card --- */
@@ -86,6 +87,19 @@ export interface Enrollment {
   access_code: string | null
   reviewed_at: string | null
   admin_note: string | null
+  created_at: string
+}
+
+export interface Attendance {
+  id: string
+  event_id: string
+  event_title: string
+  name: string
+  surname: string
+  dni: string
+  phone: string
+  email: string
+  is_free: boolean
   created_at: string
 }
 
