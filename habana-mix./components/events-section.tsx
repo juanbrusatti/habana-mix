@@ -1,10 +1,80 @@
+'use client'
+
+import { useState, useEffect } from 'react'
 import { EventCard } from '@/components/event-card'
 import { Reveal } from '@/components/reveal'
 import { SectionHeading } from '@/components/section-heading'
-import { getEvents } from '@/lib/data'
+import { supabase } from '@/lib/supabase'
 
-export async function EventsSection() {
-  const events = await getEvents()
+interface Event {
+  id: string
+  slug: string
+  title: string
+  subtitle: string | null
+  description: string | null
+  image_url: string | null
+  starts_at: string
+  ends_at: string | null
+  location: string | null
+  price_label: string | null
+  cta_label: string
+  cta_url: string | null
+  theme: string
+  layout: string
+  tags: string[]
+  featured: boolean
+  overlay_opacity: number
+  accent_color: string | null
+  status: string
+  sort_order: number
+}
+
+export function EventsSection() {
+  const [events, setEvents] = useState<Event[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    loadEvents()
+  }, [])
+
+  const loadEvents = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('events')
+        .select('*')
+        .eq('status', 'published')
+        .order('sort_order', { ascending: true })
+        .order('starts_at', { ascending: true })
+
+      if (error) {
+        console.error('Error cargando eventos:', error)
+        return
+      }
+      if (data) {
+        setEvents(data)
+      }
+    } catch (error) {
+      console.error('Error cargando eventos:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (loading) {
+    return (
+      <section
+        id="eventos"
+        aria-labelledby="eventos-title"
+        className="relative scroll-mt-16 px-5 py-20 sm:px-8 sm:py-28"
+      >
+        <div className="mx-auto max-w-6xl">
+          <div className="flex items-center justify-center">
+            <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+          </div>
+        </div>
+      </section>
+    )
+  }
 
   return (
     <section
@@ -36,7 +106,7 @@ export async function EventsSection() {
               delay={i * 110}
               className={event.featured ? 'sm:col-span-2' : undefined}
             >
-              <EventCard event={event} />
+              <EventCard event={event as any} />
             </Reveal>
           ))}
         </div>

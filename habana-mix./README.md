@@ -40,6 +40,8 @@ En el dashboard de Supabase, ve al SQL Editor y ejecuta los scripts en orden:
 8. `migrate/009_about_config_table.sql` - Tabla de configuración de quienes somos
 9. `migrate/010_add_badge_to_about.sql` - Agregar sello decorativo a quienes somos
 10. `migrate/011_footer_config_table.sql` - Tabla de configuración del footer
+11. `migrate/012_events_crud_functions.sql` - Funciones CRUD para eventos
+12. `migrate/013_add_updated_to_events.sql` - Agregar campo updated_by a tablas de contenido
 
 **Credenciales iniciales del administrador:**
 - Usuario: `administrador`
