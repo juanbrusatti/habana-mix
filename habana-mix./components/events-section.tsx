@@ -16,6 +16,7 @@ interface Event {
   starts_at: string
   ends_at: string | null
   location: string | null
+  is_free: boolean
   price_label: string | null
   cta_label: string
   cta_url: string | null
