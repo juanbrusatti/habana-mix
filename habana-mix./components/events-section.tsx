@@ -39,13 +39,19 @@ export function EventsSection() {
 
   const loadEvents = async () => {
     try {
-      const { data, error } = await supabase.rpc('get_published_events')
+      const { data, error } = await supabase
+        .from('events')
+        .select('*')
+        .eq('status', 'published')
+        .order('sort_order', { ascending: true })
+        .order('starts_at', { ascending: true })
+
       if (error) {
         console.error('Error cargando eventos:', error)
         return
       }
-      if (data && data.events) {
-        setEvents(data.events)
+      if (data) {
+        setEvents(data)
       }
     } catch (error) {
       console.error('Error cargando eventos:', error)

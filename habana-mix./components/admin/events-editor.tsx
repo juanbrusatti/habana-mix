@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from 'sonner'
-import { Loader2, Plus, Trash2, Edit2, Calendar, Clock, MapPin } from 'lucide-react'
+import { Loader2, Plus, Trash2, Edit2, Calendar, Clock, MapPin, Upload, X } from 'lucide-react'
 
 interface Event {
   id: string
@@ -83,6 +83,8 @@ export function EventsEditor() {
   const [showForm, setShowForm] = useState(false)
   const [formData, setFormData] = useState<EventFormData>(emptyEvent)
   const [saving, setSaving] = useState(false)
+  const [uploading, setUploading] = useState(false)
+  const [imageFile, setImageFile] = useState<File | null>(null)
 
   useEffect(() => {
     loadEvents()
@@ -128,6 +130,57 @@ export function EventsEditor() {
       accent_color: event.accent_color || ''
     })
     setShowForm(true)
+  }
+
+  const handleImageUpload = async (file: File) => {
+    setUploading(true)
+    try {
+      const fileExt = file.name.split('.').pop()
+      const fileName = `event-${Date.now()}.${fileExt}`
+      const filePath = `events/${fileName}`
+
+      const { error: uploadError } = await supabase.storage
+        .from('media')
+        .upload(filePath, file)
+
+      if (uploadError) throw uploadError
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('media')
+        .getPublicUrl(filePath)
+
+      setFormData({ ...formData, image_url: publicUrl })
+      toast.success('Imagen subida exitosamente')
+    } catch (error) {
+      console.error('Error subiendo imagen:', error)
+      toast.error('Error al subir la imagen')
+    } finally {
+      setUploading(false)
+      setImageFile(null)
+    }
+  }
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      if (!file.type.startsWith('image/')) {
+        toast.error('Solo se permiten archivos de imagen')
+        return
+      }
+      
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error('La imagen no puede superar 5MB')
+        return
+      }
+
+      setImageFile(file)
+      handleImageUpload(file)
+    }
+  }
+
+  const handleRemoveImage = () => {
+    setFormData({ ...formData, image_url: '' })
+    toast.info('Imagen eliminada')
   }
 
   const handleDelete = async (eventId: string) => {
@@ -260,14 +313,44 @@ export function EventsEditor() {
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="image_url">URL de imagen</Label>
-              <Input
-                id="image_url"
-                value={formData.image_url}
-                onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-                placeholder="/images/event-noche-cubana.png"
-              />
+            <div className="space-y-2 md:col-span-2">
+              <Label htmlFor="image">Imagen del evento</Label>
+              <div className="space-y-3">
+                <div className="flex gap-2">
+                  <Input
+                    id="image"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileChange}
+                    disabled={uploading}
+                  />
+                  {formData.image_url && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      onClick={handleRemoveImage}
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  )}
+                </div>
+                {uploading && (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Subiendo imagen...
+                  </div>
+                )}
+                {formData.image_url && (
+                  <div className="mt-2 rounded-lg overflow-hidden border">
+                    <img
+                      src={formData.image_url}
+                      alt="Vista previa"
+                      className="w-full h-48 object-cover"
+                    />
+                  </div>
+                )}
+              </div>
             </div>
 
             <div className="space-y-2">
