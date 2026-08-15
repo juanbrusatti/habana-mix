@@ -39,6 +39,7 @@ En el dashboard de Supabase, ve al SQL Editor y ejecuta los scripts en orden:
 7. `migrate/008_update_location_table_structure.sql` - Tabla de configuración de ubicación (Google Maps)
 8. `migrate/009_about_config_table.sql` - Tabla de configuración de quienes somos
 9. `migrate/010_add_badge_to_about.sql` - Agregar sello decorativo a quienes somos
+10. `migrate/011_footer_config_table.sql` - Tabla de configuración del footer
 
 **Credenciales iniciales del administrador:**
 - Usuario: `administrador`
