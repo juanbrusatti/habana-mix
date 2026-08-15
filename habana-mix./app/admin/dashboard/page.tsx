@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { HeroEditor } from '@/components/admin/hero-editor'
 import { LocationEditor } from '@/components/admin/location-editor'
+import { AboutEditor } from '@/components/admin/about-editor'
 import { toast } from 'sonner'
 import { Lock, Unlock } from 'lucide-react'
 
@@ -166,7 +167,7 @@ export default function AdminDashboard() {
                 <TabsList>
                   <TabsTrigger value="hero">Hero</TabsTrigger>
                   <TabsTrigger value="ubicacion">Ubicación</TabsTrigger>
-                  <TabsTrigger value="quienes-somos" disabled>Quiénes somos</TabsTrigger>
+                  <TabsTrigger value="quienes-somos">Quiénes somos</TabsTrigger>
                   <TabsTrigger value="footer" disabled>Footer</TabsTrigger>
                 </TabsList>
 
@@ -179,15 +180,7 @@ export default function AdminDashboard() {
                 </TabsContent>
 
                 <TabsContent value="quienes-somos" className="space-y-4">
-                  <div className="p-8 border rounded-lg bg-muted/50">
-                    <div className="flex items-center gap-3 mb-4">
-                      <Lock className="w-8 h-8 text-muted-foreground" />
-                      <h3 className="text-xl font-semibold">Sección bloqueada</h3>
-                    </div>
-                    <p className="text-muted-foreground">
-                      La edición de "Quiénes somos" estará disponible próximamente.
-                    </p>
-                  </div>
+                  <AboutEditor />
                 </TabsContent>
 
                 <TabsContent value="footer" className="space-y-4">
