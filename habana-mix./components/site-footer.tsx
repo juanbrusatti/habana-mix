@@ -1,3 +1,6 @@
+'use client'
+
+import { useState, useEffect } from 'react'
 import { Mail } from 'lucide-react'
 import {
   FacebookIcon,
@@ -5,37 +8,134 @@ import {
   YouTubeIcon,
 } from '@/components/brand-icons'
 import { Reveal } from '@/components/reveal'
-import { getLocationContent } from '@/lib/data'
+import { supabase } from '@/lib/supabase'
 
-const navGroups = [
-  {
-    title: 'La academia',
-    links: [
-      { label: 'Próximos eventos', href: '#eventos' },
-      { label: 'Nuestras clases', href: '#clases' },
-      { label: 'Quiénes somos', href: '#nosotros' },
-      { label: 'Cómo llegar', href: '#como-llegar' },
-    ],
-  },
-  {
-    title: 'Estilos',
-    links: [
-      { label: 'Salsa cubana', href: '#clases' },
-      { label: 'Bachata', href: '#clases' },
-      { label: 'Timba', href: '#clases' },
-      { label: 'Rueda de casino', href: '#clases' },
-    ],
-  },
-]
+interface NavLink {
+  label: string
+  href: string
+}
 
-const socials = [
-  { icon: InstagramIcon, label: 'Instagram', href: 'https://instagram.com' },
-  { icon: FacebookIcon, label: 'Facebook', href: 'https://facebook.com' },
-  { icon: YouTubeIcon, label: 'YouTube', href: 'https://youtube.com' },
-]
+interface NavGroup {
+  title: string
+  links: NavLink[]
+}
 
-export async function SiteFooter() {
-  const loc = await getLocationContent()
+interface Social {
+  label: string
+  href: string
+}
+
+interface FooterConfig {
+  description: string
+  email: string
+  copyright_text: string
+  nav_groups: NavGroup[]
+  socials: Social[]
+}
+
+interface LocationConfig {
+  street: string
+  street_number: string
+  apartment: string
+  city: string
+  state: string
+  country: string
+  phone: string
+}
+
+const defaultConfig: FooterConfig = {
+  description: 'Salsa cubana, timba y bachata con el sabor de La Habana. Más que una academia: una comunidad.',
+  email: 'hola@habanamix.com',
+  copyright_text: 'Hecho con sabor cubano',
+  nav_groups: [
+    {
+      title: 'La academia',
+      links: [
+        { label: 'Próximos eventos', href: '#eventos' },
+        { label: 'Nuestras clases', href: '#clases' },
+        { label: 'Quiénes somos', href: '#nosotros' },
+        { label: 'Cómo llegar', href: '#como-llegar' }
+      ]
+    },
+    {
+      title: 'Estilos',
+      links: [
+        { label: 'Salsa cubana', href: '#clases' },
+        { label: 'Bachata', href: '#clases' },
+        { label: 'Timba', href: '#clases' },
+        { label: 'Rueda de casino', href: '#clases' }
+      ]
+    }
+  ],
+  socials: [
+    { label: 'Instagram', href: 'https://instagram.com' },
+    { label: 'Facebook', href: 'https://facebook.com' },
+    { label: 'YouTube', href: 'https://youtube.com' }
+  ]
+}
+
+const defaultLocation: LocationConfig = {
+  street: 'Av. del Malecón',
+  street_number: '1245',
+  apartment: 'Local 3',
+  city: 'Palermo',
+  state: 'Buenos Aires',
+  country: 'Argentina',
+  phone: '+54 11 5555 1234'
+}
+
+const socialIcons: Record<string, any> = {
+  Instagram: InstagramIcon,
+  Facebook: FacebookIcon,
+  YouTube: YouTubeIcon,
+}
+
+export function SiteFooter() {
+  const [config, setConfig] = useState<FooterConfig>(defaultConfig)
+  const [location, setLocation] = useState<LocationConfig>(defaultLocation)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    loadConfig()
+  }, [])
+
+  const loadConfig = async () => {
+    try {
+      const [footerData, locationData] = await Promise.all([
+        supabase.rpc('get_footer_config'),
+        supabase.rpc('get_location_config')
+      ])
+
+      if (footerData.data) {
+        setConfig(footerData.data as FooterConfig)
+      }
+
+      if (locationData.data) {
+        setLocation(locationData.data as LocationConfig)
+      }
+    } catch (error) {
+      console.error('Error cargando configuración:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const formatAddress = () => {
+    const parts = [location.street, location.street_number]
+    if (location.apartment) parts.push(location.apartment)
+    return parts.join(', ')
+  }
+
+  const formatCity = () => {
+    const parts = [location.city, location.state]
+    if (location.country) parts.push(location.country)
+    return parts.join(', ')
+  }
+
+  const getSocialIcon = (label: string) => {
+    const iconKey = label.split(' ')[0] // Obtiene "Instagram" de "Instagram"
+    return socialIcons[iconKey] || InstagramIcon
+  }
 
   return (
     <footer className="relative overflow-hidden px-5 pt-16 pb-8 sm:px-8">
@@ -52,28 +152,30 @@ export async function SiteFooter() {
               <span className="text-foreground">Mix</span>
             </p>
             <p className="text-muted-foreground mt-3 max-w-xs text-sm leading-relaxed text-pretty">
-              Salsa cubana, timba y bachata con el sabor de La Habana. Más que
-              una academia: una comunidad.
+              {config.description}
             </p>
 
             <ul className="mt-5 flex gap-2.5">
-              {socials.map((s) => (
-                <li key={s.label}>
-                  <a
-                    href={s.href}
-                    target="_blank"
-                    rel="noreferrer"
-                    aria-label={s.label}
-                    className="border-border/70 bg-card text-foreground/70 hover:border-primary/50 hover:text-primary flex h-10 w-10 items-center justify-center rounded-full border transition-all duration-300 active:scale-90"
-                  >
-                    <s.icon className="h-4.5 w-4.5" />
-                  </a>
-                </li>
-              ))}
+              {config.socials.map((s) => {
+                const Icon = getSocialIcon(s.label)
+                return (
+                  <li key={s.label}>
+                    <a
+                      href={s.href}
+                      target="_blank"
+                      rel="noreferrer"
+                      aria-label={s.label}
+                      className="border-border/70 bg-card text-foreground/70 hover:border-primary/50 hover:text-primary flex h-10 w-10 items-center justify-center rounded-full border transition-all duration-300 active:scale-90"
+                    >
+                      <Icon className="h-4.5 w-4.5" />
+                    </a>
+                  </li>
+                )
+              })}
             </ul>
           </div>
 
-          {navGroups.map((group) => (
+          {config.nav_groups.map((group) => (
             <nav key={group.title} aria-label={group.title}>
               <p className="text-primary text-[11px] font-semibold tracking-[0.2em] uppercase">
                 {group.title}
@@ -98,23 +200,23 @@ export async function SiteFooter() {
               Contacto
             </p>
             <ul className="text-muted-foreground mt-4 flex flex-col gap-2.5 text-sm">
-              <li>{loc.address}</li>
-              <li>{loc.city}</li>
+              <li>{formatAddress()}</li>
+              <li>{formatCity()}</li>
               <li>
                 <a
-                  href={`tel:${loc.phone.replace(/\s/g, '')}`}
+                  href={`tel:${location.phone.replace(/\s/g, '')}`}
                   className="hover:text-foreground transition-colors"
                 >
-                  {loc.phone}
+                  {location.phone}
                 </a>
               </li>
               <li>
                 <a
-                  href="mailto:hola@habanamix.com"
+                  href={`mailto:${config.email}`}
                   className="hover:text-foreground inline-flex items-center gap-2 transition-colors"
                 >
                   <Mail className="h-4 w-4" />
-                  hola@habanamix.com
+                  {config.email}
                 </a>
               </li>
             </ul>
@@ -127,7 +229,7 @@ export async function SiteFooter() {
             reservados.
           </p>
           <p className="text-muted-foreground/70 text-xs">
-            Hecho con sabor cubano
+            {config.copyright_text}
           </p>
         </div>
       </div>
