@@ -16,11 +16,14 @@ interface HourEntry {
 
 interface LocationConfig {
   title: string
-  address: string
+  street: string
+  street_number: string
+  apartment: string
   city: string
+  state: string
+  country: string
+  postal_code: string
   directions_note: string
-  map_embed_url: string
-  map_link_url: string
   phone: string
   whatsapp: string
   hours: HourEntry[]
@@ -28,11 +31,14 @@ interface LocationConfig {
 
 const defaultConfig: LocationConfig = {
   title: 'Cómo llegar',
-  address: 'Av. del Malecón 1245, Local 3',
-  city: 'Palermo, Buenos Aires',
+  street: 'Av. del Malecón',
+  street_number: '1245',
+  apartment: 'Local 3',
+  city: 'Palermo',
+  state: 'Buenos Aires',
+  country: 'Argentina',
+  postal_code: 'C1414',
   directions_note: 'A dos cuadras de la estación Plaza Italia. Entrada por el pasaje interno, portón amarillo con el mural de la trompeta.',
-  map_embed_url: 'https://www.openstreetmap.org/export/embed.html?bbox=-58.4300%2C-34.5860%2C-58.4130%2C-34.5740&layer=mapnik&marker=-34.5800%2C-58.4215',
-  map_link_url: 'https://www.openstreetmap.org/?mlat=-34.5800&mlon=-58.4215#map=16/-34.5800/-58.4215',
   phone: '+54 11 5555 1234',
   whatsapp: '5491155551234',
   hours: [
@@ -81,11 +87,14 @@ export function LocationEditor() {
       const { data, error } = await supabase.rpc('update_location_config', {
         p_admin_id: adminId,
         p_title: config.title,
-        p_address: config.address,
+        p_street: config.street,
+        p_street_number: config.street_number,
+        p_apartment: config.apartment,
         p_city: config.city,
+        p_state: config.state,
+        p_country: config.country,
+        p_postal_code: config.postal_code,
         p_directions_note: config.directions_note,
-        p_map_embed_url: config.map_embed_url,
-        p_map_link_url: config.map_link_url,
         p_phone: config.phone,
         p_whatsapp: config.whatsapp,
         p_hours: config.hours as any
@@ -175,24 +184,76 @@ export function LocationEditor() {
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="address">Dirección</Label>
-            <Input
-              id="address"
-              value={config.address}
-              onChange={(e) => setConfig({ ...config, address: e.target.value })}
-              placeholder="Av. del Malecón 1245, Local 3"
-            />
-          </div>
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="street">Calle</Label>
+              <Input
+                id="street"
+                value={config.street}
+                onChange={(e) => setConfig({ ...config, street: e.target.value })}
+                placeholder="Av. del Malecón"
+              />
+            </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="city">Ciudad</Label>
-            <Input
-              id="city"
-              value={config.city}
-              onChange={(e) => setConfig({ ...config, city: e.target.value })}
-              placeholder="Palermo, Buenos Aires"
-            />
+            <div className="space-y-2">
+              <Label htmlFor="street_number">Número</Label>
+              <Input
+                id="street_number"
+                value={config.street_number}
+                onChange={(e) => setConfig({ ...config, street_number: e.target.value })}
+                placeholder="1245"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="apartment">Departamento/Piso (opcional)</Label>
+              <Input
+                id="apartment"
+                value={config.apartment}
+                onChange={(e) => setConfig({ ...config, apartment: e.target.value })}
+                placeholder="Local 3"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="city">Ciudad</Label>
+              <Input
+                id="city"
+                value={config.city}
+                onChange={(e) => setConfig({ ...config, city: e.target.value })}
+                placeholder="Palermo"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="state">Provincia/Estado</Label>
+              <Input
+                id="state"
+                value={config.state}
+                onChange={(e) => setConfig({ ...config, state: e.target.value })}
+                placeholder="Buenos Aires"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="country">País</Label>
+              <Input
+                id="country"
+                value={config.country}
+                onChange={(e) => setConfig({ ...config, country: e.target.value })}
+                placeholder="Argentina"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="postal_code">Código postal</Label>
+              <Input
+                id="postal_code"
+                value={config.postal_code}
+                onChange={(e) => setConfig({ ...config, postal_code: e.target.value })}
+                placeholder="C1414"
+              />
+            </div>
           </div>
 
           <div className="space-y-2">
@@ -207,29 +268,26 @@ export function LocationEditor() {
           </div>
         </div>
 
-        {/* Mapa */}
+        {/* Preview de dirección */}
         <div className="space-y-4">
-          <h4 className="font-medium text-sm text-muted-foreground">Mapa</h4>
-          
-          <div className="space-y-2">
-            <Label htmlFor="map_embed_url">URL del mapa embed</Label>
-            <Input
-              id="map_embed_url"
-              value={config.map_embed_url}
-              onChange={(e) => setConfig({ ...config, map_embed_url: e.target.value })}
-              placeholder="https://www.openstreetmap.org/export/embed.html..."
-            />
+          <h4 className="font-medium text-sm text-muted-foreground">Vista previa de dirección</h4>
+          <div className="p-4 bg-muted/50 rounded-lg">
+            <p className="text-sm">
+              <strong>Dirección completa:</strong>
+            </p>
+            <p className="text-sm text-muted-foreground mt-1">
+              {config.street} {config.street_number}
+              {config.apartment && `, ${config.apartment}`}
+              <br />
+              {config.city}, {config.state}
+              <br />
+              {config.country}
+              {config.postal_code && `, ${config.postal_code}`}
+            </p>
           </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="map_link_url">URL del mapa link</Label>
-            <Input
-              id="map_link_url"
-              value={config.map_link_url}
-              onChange={(e) => setConfig({ ...config, map_link_url: e.target.value })}
-              placeholder="https://www.openstreetmap.org/?mlat=..."
-            />
-          </div>
+          <p className="text-xs text-muted-foreground">
+            Esta dirección se usará para generar automáticamente el mapa de Google Maps.
+          </p>
         </div>
 
         {/* Contacto */}

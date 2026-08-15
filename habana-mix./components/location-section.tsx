@@ -14,11 +14,14 @@ interface HourEntry {
 
 interface LocationConfig {
   title: string
-  address: string
+  street: string
+  street_number: string
+  apartment: string
   city: string
+  state: string
+  country: string
+  postal_code: string
   directions_note: string
-  map_embed_url: string
-  map_link_url: string
   phone: string
   whatsapp: string
   hours: HourEntry[]
@@ -26,11 +29,14 @@ interface LocationConfig {
 
 const defaultConfig: LocationConfig = {
   title: 'Cómo llegar',
-  address: 'Av. del Malecón 1245, Local 3',
-  city: 'Palermo, Buenos Aires',
+  street: 'Av. del Malecón',
+  street_number: '1245',
+  apartment: 'Local 3',
+  city: 'Palermo',
+  state: 'Buenos Aires',
+  country: 'Argentina',
+  postal_code: 'C1414',
   directions_note: 'A dos cuadras de la estación Plaza Italia. Entrada por el pasaje interno, portón amarillo con el mural de la trompeta.',
-  map_embed_url: 'https://www.openstreetmap.org/export/embed.html?bbox=-58.4300%2C-34.5860%2C-58.4130%2C-34.5740&layer=mapnik&marker=-34.5800%2C-58.4215',
-  map_link_url: 'https://www.openstreetmap.org/?mlat=-34.5800&mlon=-58.4215#map=16/-34.5800/-58.4215',
   phone: '+54 11 5555 1234',
   whatsapp: '5491155551234',
   hours: [
@@ -63,6 +69,28 @@ export function LocationSection() {
     } finally {
       setLoading(false)
     }
+  }
+
+  const formatAddress = () => {
+    const parts = [config.street, config.street_number]
+    if (config.apartment) parts.push(config.apartment)
+    parts.push(config.city)
+    parts.push(config.state)
+    return parts.join(', ')
+  }
+
+  const generateGoogleMapsEmbedUrl = () => {
+    const address = formatAddress()
+    const encodedAddress = encodeURIComponent(address)
+    // Nota: Para usar Google Maps embed necesitas una API key
+    // Por ahora usamos la versión gratuita sin API key
+    return `https://maps.google.com/maps?q=${encodedAddress}&t=&z=15&ie=UTF8&iwloc=&output=embed`
+  }
+
+  const generateGoogleMapsLinkUrl = () => {
+    const address = formatAddress()
+    const encodedAddress = encodeURIComponent(address)
+    return `https://www.google.com/maps/search/?api=1&query=${encodedAddress}`
   }
 
   if (loading) {
@@ -103,18 +131,18 @@ export function LocationSection() {
           <Reveal className="border-border/60 bg-card relative overflow-hidden rounded-3xl border">
             <iframe
               title="Mapa de la ubicación de Habana Mix"
-              src={config.map_embed_url}
+              src={generateGoogleMapsEmbedUrl()}
               loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"
               className="h-[300px] w-full border-0 grayscale-[35%] transition-all duration-700 hover:grayscale-0 sm:h-[420px]"
             />
             <a
-              href={config.map_link_url}
+              href={generateGoogleMapsLinkUrl()}
               target="_blank"
               rel="noreferrer"
               className="border-border/70 bg-background/85 text-foreground hover:bg-background absolute bottom-4 left-1/2 flex -translate-x-1/2 items-center gap-2 rounded-full border px-4 py-2.5 text-sm font-semibold backdrop-blur-md transition-all duration-300 active:scale-95"
             >
-              Abrir en el mapa
+              Abrir en Google Maps
               <ExternalLink className="h-3.5 w-3.5" />
             </a>
           </Reveal>
@@ -130,9 +158,13 @@ export function LocationSection() {
               </span>
               <div>
                 <p className="text-foreground font-serif text-lg font-semibold">
-                  {config.address}
+                  {config.street} {config.street_number}
+                  {config.apartment && `, ${config.apartment}`}
                 </p>
-                <p className="text-muted-foreground text-sm">{config.city}</p>
+                <p className="text-muted-foreground text-sm">
+                  {config.city}, {config.state}
+                  {config.country && `, ${config.country}`}
+                </p>
               </div>
             </div>
 

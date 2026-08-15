@@ -1,11 +1,15 @@
 -- ============================================================================
--- TABLA DE CONFIGURACIÓN DE UBICACIÓN
+-- MIGRACIÓN: ACTUALIZAR ESTRUCTURA DE TABLA LOCATION_CONFIG
 -- ============================================================================
--- Esta tabla permite editar dinámicamente los elementos de la sección de ubicación
--- Usa campos de dirección básicos para generar automáticamente URLs de Google Maps
+-- Este script actualiza la tabla location_config para usar campos de dirección
+-- básicos en lugar de URLs complejas, facilitando el uso de Google Maps
 -- ============================================================================
 
-create table if not exists public.location_config (
+-- Eliminar la tabla existente y recrearla con la nueva estructura
+drop table if exists public.location_config cascade;
+
+-- Recrear la tabla con la nueva estructura
+create table public.location_config (
   id              uuid primary key default gen_random_uuid(),
   title           text default 'Cómo llegar',
   street          text default 'Av. del Malecón',
@@ -46,8 +50,7 @@ values (
     {"label": "Sábados", "value": "11:00 – 20:00"},
     {"label": "Domingos", "value": "Solo eventos"}
   ]'::jsonb
-)
-on conflict do nothing;
+);
 
 -- ============================================================================
 -- ROW LEVEL SECURITY

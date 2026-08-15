@@ -36,7 +36,7 @@ En el dashboard de Supabase, ve al SQL Editor y ejecuta los scripts en orden:
 4. `migrate/004_add_salt_column.sql` - Agregar columna salt a tabla existente
 5. `migrate/005_hero_config_table.sql` - Tabla de configuración del hero
 6. `migrate/006_admin_storage_policies.sql` - Políticas de storage para admin
-7. `migrate/007_location_config_table.sql` - Tabla de configuración de ubicación
+7. `migrate/008_update_location_table_structure.sql` - Tabla de configuración de ubicación (Google Maps)
 
 **Credenciales iniciales del administrador:**
 - Usuario: `administrador`
