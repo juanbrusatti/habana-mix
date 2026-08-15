@@ -2,7 +2,11 @@
 
 import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
+import { HeroEditor } from '@/components/admin/hero-editor'
+import { LocationEditor } from '@/components/admin/location-editor'
 import { toast } from 'sonner'
+import { Lock, Unlock } from 'lucide-react'
 
 interface AdminSession {
   admin_id: string
@@ -14,6 +18,7 @@ interface AdminSession {
 export default function AdminDashboard() {
   const [user, setUser] = useState<AdminSession | null>(null)
   const [loading, setLoading] = useState(true)
+  const [activeTab, setActiveTab] = useState('general')
 
   useEffect(() => {
     checkSession()
@@ -57,6 +62,15 @@ export default function AdminDashboard() {
     window.location.href = '/admin'
   }
 
+  const handleTabChange = (tabId: string) => {
+    const lockedTabs = ['clases', 'eventos', 'sorteos']
+    if (lockedTabs.includes(tabId)) {
+      toast.error('Esta sección está bloqueada temporalmente')
+      return
+    }
+    setActiveTab(tabId)
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -85,29 +99,112 @@ export default function AdminDashboard() {
       </nav>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="space-y-6">
-          <div>
-            <h2 className="text-2xl font-bold">Bienvenido al Panel de Administración</h2>
-            <p className="text-muted-foreground">
-              Gestiona clases, eventos y contenido del sitio web
-            </p>
-          </div>
+        <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
+          <TabsList>
+            <TabsTrigger value="clases" className="flex items-center gap-2">
+              <Lock className="w-4 h-4" />
+              Clases
+            </TabsTrigger>
+            <TabsTrigger value="eventos" className="flex items-center gap-2">
+              <Lock className="w-4 h-4" />
+              Eventos
+            </TabsTrigger>
+            <TabsTrigger value="sorteos" className="flex items-center gap-2">
+              <Lock className="w-4 h-4" />
+              Sorteos
+            </TabsTrigger>
+            <TabsTrigger value="general" className="flex items-center gap-2">
+              <Unlock className="w-4 h-4" />
+              Edición General
+            </TabsTrigger>
+          </TabsList>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="p-6 border rounded-lg">
-              <h3 className="font-semibold mb-2">Clases</h3>
-              <p className="text-sm text-muted-foreground">Gestionar clases de baile</p>
+          <TabsContent value="clases" className="space-y-4">
+            <div className="p-8 border rounded-lg bg-muted/50">
+              <div className="flex items-center gap-3 mb-4">
+                <Lock className="w-8 h-8 text-muted-foreground" />
+                <h3 className="text-xl font-semibold">Sección Bloqueada</h3>
+              </div>
+              <p className="text-muted-foreground">
+                La gestión de clases estará disponible próximamente.
+              </p>
             </div>
-            <div className="p-6 border rounded-lg">
-              <h3 className="font-semibold mb-2">Eventos</h3>
-              <p className="text-sm text-muted-foreground">Crear y editar eventos</p>
+          </TabsContent>
+
+          <TabsContent value="eventos" className="space-y-4">
+            <div className="p-8 border rounded-lg bg-muted/50">
+              <div className="flex items-center gap-3 mb-4">
+                <Lock className="w-8 h-8 text-muted-foreground" />
+                <h3 className="text-xl font-semibold">Sección Bloqueada</h3>
+              </div>
+              <p className="text-muted-foreground">
+                La gestión de eventos estará disponible próximamente.
+              </p>
             </div>
-            <div className="p-6 border rounded-lg">
-              <h3 className="font-semibold mb-2">Inscripciones</h3>
-              <p className="text-sm text-muted-foreground">Gestionar inscripciones de alumnos</p>
+          </TabsContent>
+
+          <TabsContent value="sorteos" className="space-y-4">
+            <div className="p-8 border rounded-lg bg-muted/50">
+              <div className="flex items-center gap-3 mb-4">
+                <Lock className="w-8 h-8 text-muted-foreground" />
+                <h3 className="text-xl font-semibold">Sección Bloqueada</h3>
+              </div>
+              <p className="text-muted-foreground">
+                El sistema de sorteos estará disponible próximamente.
+              </p>
             </div>
-          </div>
-        </div>
+          </TabsContent>
+
+          <TabsContent value="general" className="space-y-6">
+            <div className="p-6 border rounded-lg">
+              <h3 className="text-xl font-semibold mb-4">Edición General</h3>
+              <p className="text-muted-foreground mb-6">
+                Aquí podrás editar elementos generales del sitio.
+              </p>
+              
+              <Tabs defaultValue="hero" className="space-y-6">
+                <TabsList>
+                  <TabsTrigger value="hero">Hero</TabsTrigger>
+                  <TabsTrigger value="ubicacion">Ubicación</TabsTrigger>
+                  <TabsTrigger value="quienes-somos" disabled>Quiénes somos</TabsTrigger>
+                  <TabsTrigger value="footer" disabled>Footer</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="hero" className="space-y-4">
+                  <HeroEditor />
+                </TabsContent>
+
+                <TabsContent value="ubicacion" className="space-y-4">
+                  <LocationEditor />
+                </TabsContent>
+
+                <TabsContent value="quienes-somos" className="space-y-4">
+                  <div className="p-8 border rounded-lg bg-muted/50">
+                    <div className="flex items-center gap-3 mb-4">
+                      <Lock className="w-8 h-8 text-muted-foreground" />
+                      <h3 className="text-xl font-semibold">Sección bloqueada</h3>
+                    </div>
+                    <p className="text-muted-foreground">
+                      La edición de "Quiénes somos" estará disponible próximamente.
+                    </p>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="footer" className="space-y-4">
+                  <div className="p-8 border rounded-lg bg-muted/50">
+                    <div className="flex items-center gap-3 mb-4">
+                      <Lock className="w-8 h-8 text-muted-foreground" />
+                      <h3 className="text-xl font-semibold">Sección bloqueada</h3>
+                    </div>
+                    <p className="text-muted-foreground">
+                      La edición del footer estará disponible próximamente.
+                    </p>
+                  </div>
+                </TabsContent>
+              </Tabs>
+            </div>
+          </TabsContent>
+        </Tabs>
       </main>
     </div>
   )
