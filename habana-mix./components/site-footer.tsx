@@ -33,6 +33,16 @@ interface FooterConfig {
   socials: Social[]
 }
 
+interface LocationConfig {
+  street: string
+  street_number: string
+  apartment: string
+  city: string
+  state: string
+  country: string
+  phone: string
+}
+
 const defaultConfig: FooterConfig = {
   description: 'Salsa cubana, timba y bachata con el sabor de La Habana. Más que una academia: una comunidad.',
   email: 'hola@habanamix.com',
@@ -64,6 +74,16 @@ const defaultConfig: FooterConfig = {
   ]
 }
 
+const defaultLocation: LocationConfig = {
+  street: 'Av. del Malecón',
+  street_number: '1245',
+  apartment: 'Local 3',
+  city: 'Palermo',
+  state: 'Buenos Aires',
+  country: 'Argentina',
+  phone: '+54 11 5555 1234'
+}
+
 const socialIcons: Record<string, any> = {
   Instagram: InstagramIcon,
   Facebook: FacebookIcon,
@@ -72,6 +92,7 @@ const socialIcons: Record<string, any> = {
 
 export function SiteFooter() {
   const [config, setConfig] = useState<FooterConfig>(defaultConfig)
+  const [location, setLocation] = useState<LocationConfig>(defaultLocation)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -80,19 +101,35 @@ export function SiteFooter() {
 
   const loadConfig = async () => {
     try {
-      const { data, error } = await supabase.rpc('get_footer_config')
-      if (error) {
-        console.error('Error cargando configuración del footer:', error)
-        return
+      const [footerData, locationData] = await Promise.all([
+        supabase.rpc('get_footer_config'),
+        supabase.rpc('get_location_config')
+      ])
+
+      if (footerData.data) {
+        setConfig(footerData.data as FooterConfig)
       }
-      if (data) {
-        setConfig(data as FooterConfig)
+
+      if (locationData.data) {
+        setLocation(locationData.data as LocationConfig)
       }
     } catch (error) {
       console.error('Error cargando configuración:', error)
     } finally {
       setLoading(false)
     }
+  }
+
+  const formatAddress = () => {
+    const parts = [location.street, location.street_number]
+    if (location.apartment) parts.push(location.apartment)
+    return parts.join(', ')
+  }
+
+  const formatCity = () => {
+    const parts = [location.city, location.state]
+    if (location.country) parts.push(location.country)
+    return parts.join(', ')
   }
 
   const getSocialIcon = (label: string) => {
@@ -163,9 +200,16 @@ export function SiteFooter() {
               Contacto
             </p>
             <ul className="text-muted-foreground mt-4 flex flex-col gap-2.5 text-sm">
-              <li>Dirección (configurada en ubicación)</li>
-              <li>Ciudad (configurada en ubicación)</li>
-              <li>Teléfono (configurado en ubicación)</li>
+              <li>{formatAddress()}</li>
+              <li>{formatCity()}</li>
+              <li>
+                <a
+                  href={`tel:${location.phone.replace(/\s/g, '')}`}
+                  className="hover:text-foreground transition-colors"
+                >
+                  {location.phone}
+                </a>
+              </li>
               <li>
                 <a
                   href={`mailto:${config.email}`}
