@@ -1,10 +1,12 @@
 'use client'
 
+import { useState } from 'react'
 import { CalendarDays, Clock, MapPin, Ticket } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { getCardTheme } from '@/lib/card-theme'
 import type { AcademyEvent } from '@/lib/types'
 import { cn } from '@/lib/utils'
+import { FreeAttendanceDialog } from '@/components/free-attendance-dialog'
 
 function formatDate(iso: string) {
   return new Intl.DateTimeFormat('es-ES', {
@@ -40,6 +42,8 @@ export function EventCard({ event }: { event: AcademyEvent }) {
   const accentStyle = event.accent_color
     ? { color: event.accent_color }
     : undefined
+
+  const [open, setOpen] = useState(false)
 
   const isOverlay = event.layout === 'overlay'
   const isMinimal = event.layout === 'minimal'
@@ -208,7 +212,24 @@ export function EventCard({ event }: { event: AcademyEvent }) {
           )}
         </dl>
 
-        {event.cta_url ? (
+        {/** Si el evento es gratuito abrimos el diálogo interno, si no usamos la URL o botón normal */}
+        {event.is_free ? (
+          <>
+            <Button
+              className={cn(ctaClassName, t.accentBg)}
+              style={ctaStyle}
+              onClick={() => setOpen(true)}
+            >
+              {event.cta_label ?? 'Reservar lugar'}
+            </Button>
+            <FreeAttendanceDialog
+              eventId={event.id}
+              eventTitle={event.title}
+              open={open}
+              onOpenChange={setOpen}
+            />
+          </>
+        ) : event.cta_url ? (
           <a
             href={event.cta_url}
             target="_blank"
@@ -230,3 +251,4 @@ export function EventCard({ event }: { event: AcademyEvent }) {
     </article>
   )
 }
+
