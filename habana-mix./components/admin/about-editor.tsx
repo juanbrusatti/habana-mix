@@ -20,6 +20,9 @@ interface AboutConfig {
   image_url: string
   paragraphs: string[]
   stats: StatEntry[]
+  show_badge: boolean
+  badge_main_text: string
+  badge_sub_text: string
 }
 
 const defaultConfig: AboutConfig = {
@@ -36,7 +39,10 @@ const defaultConfig: AboutConfig = {
     { value: '1.200', label: 'Alumnos felices' },
     { value: '4', label: 'Estilos cubanos' },
     { value: '2', label: 'Fiestas al mes' }
-  ]
+  ],
+  show_badge: true,
+  badge_main_text: '100% cubano',
+  badge_sub_text: 'Instructores de La Habana'
 }
 
 export function AboutEditor() {
@@ -134,7 +140,10 @@ export function AboutEditor() {
         p_title: config.title,
         p_image_url: config.image_url,
         p_paragraphs: config.paragraphs as any,
-        p_stats: config.stats as any
+        p_stats: config.stats as any,
+        p_show_badge: config.show_badge,
+        p_badge_main_text: config.badge_main_text,
+        p_badge_sub_text: config.badge_sub_text
       })
 
       if (error) throw error
@@ -302,6 +311,58 @@ export function AboutEditor() {
               >
                 <X className="w-4 h-4" />
               </Button>
+            </div>
+          )}
+        </div>
+
+        {/* Sello decorativo */}
+        <div className="space-y-4">
+          <h4 className="font-medium text-sm text-muted-foreground">Sello decorativo</h4>
+          
+          <div className="flex items-center justify-between">
+            <Label htmlFor="show_badge">Mostrar sello en la imagen</Label>
+            <input
+              id="show_badge"
+              type="checkbox"
+              checked={config.show_badge}
+              onChange={(e) => setConfig({ ...config, show_badge: e.target.checked })}
+              className="w-5 h-5 rounded"
+            />
+          </div>
+
+          {config.show_badge && (
+            <div className="space-y-3">
+              <div className="space-y-2">
+                <Label htmlFor="badge_main_text">Texto principal</Label>
+                <Input
+                  id="badge_main_text"
+                  value={config.badge_main_text}
+                  onChange={(e) => setConfig({ ...config, badge_main_text: e.target.value })}
+                  placeholder="100% cubano"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="badge_sub_text">Texto secundario</Label>
+                <Input
+                  id="badge_sub_text"
+                  value={config.badge_sub_text}
+                  onChange={(e) => setConfig({ ...config, badge_sub_text: e.target.value })}
+                  placeholder="Instructores de La Habana"
+                />
+              </div>
+
+              <div className="p-4 bg-muted/50 rounded-lg">
+                <p className="text-sm font-medium mb-2">Vista previa del sello:</p>
+                <div className="border-border/60 bg-background/85 rounded-2xl border px-5 py-3 backdrop-blur-md">
+                  <p className="text-primary font-serif text-2xl leading-none font-semibold">
+                    {config.badge_main_text}
+                  </p>
+                  <p className="text-muted-foreground mt-1 text-[11px] tracking-[0.16em] uppercase">
+                    {config.badge_sub_text}
+                  </p>
+                </div>
+              </div>
             </div>
           )}
         </div>

@@ -16,6 +16,9 @@ interface AboutConfig {
   image_url: string
   paragraphs: string[]
   stats: StatEntry[]
+  show_badge: boolean
+  badge_main_text: string
+  badge_sub_text: string
 }
 
 const defaultConfig: AboutConfig = {
@@ -32,7 +35,10 @@ const defaultConfig: AboutConfig = {
     { value: '1.200', label: 'Alumnos felices' },
     { value: '4', label: 'Estilos cubanos' },
     { value: '2', label: 'Fiestas al mes' }
-  ]
+  ],
+  show_badge: true,
+  badge_main_text: '100% cubano',
+  badge_sub_text: 'Instructores de La Habana'
 }
 
 export function AboutSection() {
@@ -104,14 +110,16 @@ export function AboutSection() {
               />
             </div>
             {/* Sello decorativo */}
-            <div className="border-border/60 bg-background/85 absolute -bottom-5 left-5 rounded-2xl border px-5 py-3 backdrop-blur-md sm:left-7">
-              <p className="text-primary font-serif text-2xl leading-none font-semibold">
-                100% cubano
-              </p>
-              <p className="text-muted-foreground mt-1 text-[11px] tracking-[0.16em] uppercase">
-                Instructores de La Habana
-              </p>
-            </div>
+            {config.show_badge && (
+              <div className="border-border/60 bg-background/85 absolute -bottom-5 left-5 rounded-2xl border px-5 py-3 backdrop-blur-md sm:left-7">
+                <p className="text-primary font-serif text-2xl leading-none font-semibold">
+                  {config.badge_main_text}
+                </p>
+                <p className="text-muted-foreground mt-1 text-[11px] tracking-[0.16em] uppercase">
+                  {config.badge_sub_text}
+                </p>
+              </div>
+            )}
           </Reveal>
 
           {/* Texto */}
