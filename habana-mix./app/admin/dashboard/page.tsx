@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { HeroEditor } from '@/components/admin/hero-editor'
+import { LocationEditor } from '@/components/admin/location-editor'
 import { toast } from 'sonner'
 import { Lock, Unlock } from 'lucide-react'
 
@@ -161,15 +162,46 @@ export default function AdminDashboard() {
                 Aquí podrás editar elementos generales del sitio.
               </p>
               
-              <div className="space-y-6">
-                <HeroEditor />
-                
-                <div className="p-4 bg-muted/50 rounded-lg">
-                  <p className="text-sm text-muted-foreground">
-                    Próximamente se agregarán más opciones de edición.
-                  </p>
-                </div>
-              </div>
+              <Tabs defaultValue="hero" className="space-y-6">
+                <TabsList>
+                  <TabsTrigger value="hero">Hero</TabsTrigger>
+                  <TabsTrigger value="ubicacion">Ubicación</TabsTrigger>
+                  <TabsTrigger value="quienes-somos" disabled>Quiénes somos</TabsTrigger>
+                  <TabsTrigger value="footer" disabled>Footer</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="hero" className="space-y-4">
+                  <HeroEditor />
+                </TabsContent>
+
+                <TabsContent value="ubicacion" className="space-y-4">
+                  <LocationEditor />
+                </TabsContent>
+
+                <TabsContent value="quienes-somos" className="space-y-4">
+                  <div className="p-8 border rounded-lg bg-muted/50">
+                    <div className="flex items-center gap-3 mb-4">
+                      <Lock className="w-8 h-8 text-muted-foreground" />
+                      <h3 className="text-xl font-semibold">Sección bloqueada</h3>
+                    </div>
+                    <p className="text-muted-foreground">
+                      La edición de "Quiénes somos" estará disponible próximamente.
+                    </p>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="footer" className="space-y-4">
+                  <div className="p-8 border rounded-lg bg-muted/50">
+                    <div className="flex items-center gap-3 mb-4">
+                      <Lock className="w-8 h-8 text-muted-foreground" />
+                      <h3 className="text-xl font-semibold">Sección bloqueada</h3>
+                    </div>
+                    <p className="text-muted-foreground">
+                      La edición del footer estará disponible próximamente.
+                    </p>
+                  </div>
+                </TabsContent>
+              </Tabs>
             </div>
           </TabsContent>
         </Tabs>
