@@ -19,13 +19,20 @@ export function FreeAttendanceDialog({
   onOpenChange: (v: boolean) => void
 }) {
   const [submitting, setSubmitting] = useState(false)
+  const [fieldError, setFieldError] = useState<{ dni?: string; phone?: string; email?: string }>({})
   const [form, setForm] = useState({ name: '', surname: '', dni: '', phone: '', email: '' })
 
   useEffect(() => {
-    if (!open) setForm({ name: '', surname: '', dni: '', phone: '', email: '' })
+    if (!open) {
+      setForm({ name: '', surname: '', dni: '', phone: '', email: '' })
+      setFieldError({})
+    }
   }, [open, eventId])
 
-  const set = (k: keyof typeof form) => (v: string) => setForm((f) => ({ ...f, [k]: v }))
+  const set = (k: keyof typeof form) => (v: string) => {
+    setForm((f) => ({ ...f, [k]: v }))
+    setFieldError((current) => ({ ...current, [k === 'dni' ? 'dni' : k === 'phone' ? 'phone' : k === 'email' ? 'email' : undefined]: undefined }))
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -50,7 +57,21 @@ export function FreeAttendanceDialog({
       })
 
       const json = await res.json()
-      if (!res.ok) throw new Error(json?.error || 'Error guardando asistencia')
+      if (!res.ok) {
+        const message = String(json?.error || 'Error guardando asistencia')
+
+        if (message.toLowerCase().includes('dni')) {
+          setFieldError((current) => ({ ...current, dni: message }))
+        }
+        if (message.toLowerCase().includes('tel')) {
+          setFieldError((current) => ({ ...current, phone: message }))
+        }
+        if (message.toLowerCase().includes('email')) {
+          setFieldError((current) => ({ ...current, email: message }))
+        }
+
+        throw new Error(message)
+      }
 
       toast.success('Reserva registrada. Gracias!')
       onOpenChange(false)
@@ -83,15 +104,34 @@ export function FreeAttendanceDialog({
             </div>
             <div>
               <Label>DNI</Label>
-              <Input required value={form.dni} onChange={(e) => set('dni')(e.target.value)} />
+              <Input
+                required
+                value={form.dni}
+                onChange={(e) => set('dni')(e.target.value)}
+                aria-invalid={Boolean(fieldError.dni)}
+              />
+              {fieldError.dni && <p className="mt-1 text-xs text-red-500">{fieldError.dni}</p>}
             </div>
             <div>
               <Label>Teléfono</Label>
-              <Input required value={form.phone} onChange={(e) => set('phone')(e.target.value)} />
+              <Input
+                required
+                value={form.phone}
+                onChange={(e) => set('phone')(e.target.value)}
+                aria-invalid={Boolean(fieldError.phone)}
+              />
+              {fieldError.phone && <p className="mt-1 text-xs text-red-500">{fieldError.phone}</p>}
             </div>
             <div>
               <Label>Email</Label>
-              <Input required type="email" value={form.email} onChange={(e) => set('email')(e.target.value)} />
+              <Input
+                required
+                type="email"
+                value={form.email}
+                onChange={(e) => set('email')(e.target.value)}
+                aria-invalid={Boolean(fieldError.email)}
+              />
+              {fieldError.email && <p className="mt-1 text-xs text-red-500">{fieldError.email}</p>}
             </div>
 
             <div className="flex gap-2 mt-2">
