@@ -79,6 +79,19 @@ const emptyEvent: EventFormData = {
   sort_order: 0
 }
 
+
+// Función auxiliar para formatear fechas consistentemente para datetime-local
+const formatDateForInput = (isoString: string): string => {
+  const date = new Date(isoString)
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  const hours = String(date.getHours()).padStart(2, '0')
+  const minutes = String(date.getMinutes()).padStart(2, '0')
+  return `${year}-${month}-${day}T${hours}:${minutes}`
+}
+
+
 export function EventsEditor() {
   const [events, setEvents] = useState<Event[]>([])
   const [loading, setLoading] = useState(true)
@@ -122,8 +135,8 @@ export function EventsEditor() {
     setFormData({
       ...event,
       tags: event.tags.join(', '),
-      starts_at: new Date(event.starts_at).toISOString().slice(0, 16),
-      ends_at: event.ends_at ? new Date(event.ends_at).toISOString().slice(0, 16) : '',
+      starts_at: formatDateForInput(event.starts_at),
+      ends_at: event.ends_at ? formatDateForInput(event.ends_at) : '',
       subtitle: event.subtitle || '',
       description: event.description || '',
       image_url: event.image_url || '',
@@ -561,6 +574,14 @@ export function EventsEditor() {
                         hour: '2-digit',
                         minute: '2-digit'
                       })}
+                      {event.ends_at && (
+                        <span className="text-muted-foreground">
+                          - {new Date(event.ends_at).toLocaleTimeString('es-AR', {
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </span>
+                      )}
                     </div>
                     {event.location && (
                       <div className="flex items-center gap-1">

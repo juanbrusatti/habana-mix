@@ -23,6 +23,13 @@ function formatTime(iso: string) {
   }).format(new Date(iso))
 }
 
+function formatTimeRange(startIso: string, endIso: string | null): string {
+  const startTime = formatTime(startIso)
+  if (!endIso) return startTime + ' hs'
+  const endTime = formatTime(endIso)
+  return `${startTime} - ${endTime} hs`
+}
+
 function daysUntil(iso: string) {
   const diff = Math.ceil(
     (new Date(iso).getTime() - Date.now()) / 86_400_000,
@@ -187,7 +194,7 @@ export function EventCard({ event }: { event: AcademyEvent }) {
               style={accentStyle}
             />
             <dd className="text-foreground/85">
-              {formatTime(event.starts_at)} hs
+              {formatTimeRange(event.starts_at, event.ends_at)}
             </dd>
           </div>
           {event.location && (
