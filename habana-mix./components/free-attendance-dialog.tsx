@@ -29,9 +29,16 @@ export function FreeAttendanceDialog({
     }
   }, [open, eventId])
 
+  const clearFieldError = (field: 'dni' | 'phone' | 'email') => {
+    setFieldError((current) => ({ ...current, [field]: undefined }))
+  }
+
   const set = (k: keyof typeof form) => (v: string) => {
     setForm((f) => ({ ...f, [k]: v }))
-    setFieldError((current) => ({ ...current, [k === 'dni' ? 'dni' : k === 'phone' ? 'phone' : k === 'email' ? 'email' : undefined]: undefined }))
+
+    if (k === 'dni') clearFieldError('dni')
+    if (k === 'phone') clearFieldError('phone')
+    if (k === 'email') clearFieldError('email')
   }
 
   const handleSubmit = async (e: React.FormEvent) => {

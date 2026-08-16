@@ -2,9 +2,11 @@
 
 import { useEffect, useState } from 'react'
 import {
+  CheckCircle2,
   CircleCheckBigIcon,
   Clock3,
   FileImage,
+  Loader2,
   Loader2Icon,
   Upload,
   X,
