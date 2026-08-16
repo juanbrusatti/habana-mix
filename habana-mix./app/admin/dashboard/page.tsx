@@ -8,6 +8,7 @@ import { LocationEditor } from '@/components/admin/location-editor'
 import { AboutEditor } from '@/components/admin/about-editor'
 import { FooterEditor } from '@/components/admin/footer-editor'
 import { EventsEditor } from '@/components/admin/events-editor'
+import { AttendanceAdmin } from '@/components/admin/attendance-admin'
 import { toast } from 'sonner'
 import { Lock, Unlock } from 'lucide-react'
 
@@ -66,7 +67,7 @@ export default function AdminDashboard() {
   }
 
   const handleTabChange = (tabId: string) => {
-    const lockedTabs = ['clases', 'sorteos']
+    const lockedTabs = ['clases']
     if (lockedTabs.includes(tabId)) {
       toast.error('Esta sección está bloqueada temporalmente')
       return
@@ -112,9 +113,9 @@ export default function AdminDashboard() {
               <Unlock className="w-4 h-4" />
               Eventos
             </TabsTrigger>
-            <TabsTrigger value="sorteos" className="flex items-center gap-2">
-              <Lock className="w-4 h-4" />
-              Sorteos
+            <TabsTrigger value="asistencia" className="flex items-center gap-2">
+              <Unlock className="w-4 h-4" />
+              Asistencia
             </TabsTrigger>
             <TabsTrigger value="general" className="flex items-center gap-2">
               <Unlock className="w-4 h-4" />
@@ -138,16 +139,8 @@ export default function AdminDashboard() {
             <EventsEditor />
           </TabsContent>
 
-          <TabsContent value="sorteos" className="space-y-4">
-            <div className="p-8 border rounded-lg bg-muted/50">
-              <div className="flex items-center gap-3 mb-4">
-                <Lock className="w-8 h-8 text-muted-foreground" />
-                <h3 className="text-xl font-semibold">Sección Bloqueada</h3>
-              </div>
-              <p className="text-muted-foreground">
-                El sistema de sorteos estará disponible próximamente.
-              </p>
-            </div>
+          <TabsContent value="asistencia" className="space-y-4">
+            <AttendanceAdmin />
           </TabsContent>
 
           <TabsContent value="general" className="space-y-6">

@@ -153,3 +153,14 @@ SELECT public.create_or_update_admin(
 - ✅ Row Level Security (RLS) habilitado en todas las tablas
 - ✅ Variables de entorno en `.gitignore`
 - ✅ Funciones SQL con `security definer` para operaciones sensibles
+
+## Nuevo: Registro de asistencias para eventos gratuitos
+
+Se agregó un sistema simple para que, cuando un evento está marcado como gratuito, el botón de reserva abra un formulario y guarde los datos en la base de datos.
+
+- Migración nueva: `migrate/018_create_attendances_table.sql` — crear tabla `attendances`.
+- Endpoint API: `POST /api/attendances` para recibir y almacenar reservas gratuitas.
+- UI cliente: diálogo en `components/free-attendance-dialog.tsx`, integrado en `EventCard`.
+- Panel admin: nueva vista en `/admin/dashboard` → pestaña `Asistencia` con separación `Gratuitos` / `Pagos` y agrupado por título del evento.
+
+Para aplicar los cambios en Supabase ejecuta la migración (`018_create_attendances_table.sql`) desde el SQL Editor.

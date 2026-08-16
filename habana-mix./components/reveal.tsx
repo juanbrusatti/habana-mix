@@ -4,7 +4,7 @@ import type React from 'react'
 import { useEffect, useRef, useState } from 'react'
 import { cn } from '@/lib/utils'
 
-interface RevealProps extends React.HTMLAttributes<HTMLDivElement> {
+interface RevealProps extends React.HTMLAttributes<HTMLElement> {
   /** Retardo en ms para escalonar elementos de una misma fila */
   delay?: number
   as?: 'div' | 'section' | 'li' | 'article' | 'header' | 'footer'

@@ -19,6 +19,7 @@ interface Event {
   starts_at: string
   ends_at: string | null
   location: string | null
+  is_free: boolean
   price_label: string | null
   cta_label: string
   cta_url: string | null
@@ -41,6 +42,7 @@ interface EventFormData {
   starts_at: string
   ends_at: string
   location: string
+  is_free: boolean
   price_label: string
   cta_label: string
   cta_url: string
@@ -63,6 +65,7 @@ const emptyEvent: EventFormData = {
   starts_at: '',
   ends_at: '',
   location: '',
+  is_free: true,
   price_label: '',
   cta_label: 'Reservar lugar',
   cta_url: '',
@@ -125,6 +128,7 @@ export function EventsEditor() {
       description: event.description || '',
       image_url: event.image_url || '',
       location: event.location || '',
+      is_free: event.is_free,
       price_label: event.price_label || '',
       cta_url: event.cta_url || '',
       accent_color: event.accent_color || ''
@@ -385,14 +389,42 @@ export function EventsEditor() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="price_label">Precio</Label>
-              <Input
-                id="price_label"
-                value={formData.price_label}
-                onChange={(e) => setFormData({ ...formData, price_label: e.target.value })}
-                placeholder="Entrada $20 · Alumnos gratis"
-              />
+              <Label>Tipo de evento</Label>
+              <div className="flex gap-4">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="is_free"
+                    checked={formData.is_free}
+                    onChange={() => setFormData({ ...formData, is_free: true, price_label: '' })}
+                    className="w-4 h-4"
+                  />
+                  <span>Gratuito</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="is_free"
+                    checked={!formData.is_free}
+                    onChange={() => setFormData({ ...formData, is_free: false })}
+                    className="w-4 h-4"
+                  />
+                  <span>De pago</span>
+                </label>
+              </div>
             </div>
+
+            {!formData.is_free && (
+              <div className="space-y-2">
+                <Label htmlFor="price_label">Precio</Label>
+                <Input
+                  id="price_label"
+                  value={formData.price_label}
+                  onChange={(e) => setFormData({ ...formData, price_label: e.target.value })}
+                  placeholder="Entrada $20 · Alumnos gratis"
+                />
+              </div>
+            )}
 
             <div className="space-y-2">
               <Label htmlFor="cta_label">Texto del botón</Label>
