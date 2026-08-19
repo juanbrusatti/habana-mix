@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { MercadoPagoConfig, Preference } from 'mercadopago'
-import { supabaseAdmin } from '@/lib/supabase-admin'
+import { getSupabaseAdmin } from '@/lib/supabase-admin'
 
 const normalizeText = (value: string) => value.trim()
 const normalizeDni = (value: string) => normalizeText(value).toUpperCase()
@@ -17,6 +17,7 @@ export async function POST(req: Request) {
   let attendanceId: string | null = null
 
   try {
+    const supabaseAdmin = getSupabaseAdmin()
     const body = await req.json()
     const required = ['event_id', 'name', 'surname', 'dni', 'phone', 'email']
 

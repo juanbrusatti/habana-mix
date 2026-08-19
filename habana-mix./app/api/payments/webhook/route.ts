@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server'
 import { MercadoPagoConfig, Payment } from 'mercadopago'
-import { supabaseAdmin } from '@/lib/supabase-admin'
+import { getSupabaseAdmin } from '@/lib/supabase-admin'
 
 export async function POST(req: Request) {
   try {
+    const supabaseAdmin = getSupabaseAdmin()
     const body = await req.json()
     const paymentId = body?.data?.id || body?.id
     const type = body?.type || body?.topic
