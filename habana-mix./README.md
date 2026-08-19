@@ -188,14 +188,19 @@ Ejecuta en Supabase, en orden, las migraciones nuevas:
 1. `migrate/023_add_paid_event_checkout.sql`
 2. `migrate/021_attendances_delete_policy.sql` si aún no fue ejecutada
 3. `migrate/022_cascade_delete_attendances_on_event_delete.sql` si aún no fue ejecutada
+4. `migrate/024_paid_checkout_orders.sql`
+5. `migrate/025_cleanup_unapproved_paid_attendances.sql` para limpiar registros pagos antiguos no aprobados
 
 ### Flujo de pago
 
 1. El visitante completa nombre, apellido, DNI, email y teléfono.
 2. El servidor obtiene el precio desde `events.price_amount`; nunca acepta un precio enviado por el navegador.
-3. Se crea una asistencia `pending` y una preferencia de Mercado Pago.
+3. Se crea una orden de pago temporal y una preferencia de Mercado Pago.
 4. El visitante es redirigido a Mercado Pago.
-5. Mercado Pago llama a `POST /api/payments/webhook`.
-6. El webhook consulta el pago en Mercado Pago, valida importe y moneda, y recién entonces marca la asistencia como `approved`.
+5. Mercado Pago llama a `POST /api/payments/webhook` para actualizar el estado de la orden.
+6. Al volver a `/pago/exito`, el servidor consulta el pago, valida importe, moneda y referencia.
+7. Solo si el pago está `approved` se crea la asistencia definitiva en `attendances`.
+
+Los pagos rechazados o abandonados no crean asistencias y permiten volver a intentar con los mismos datos.
 
 Para producción, configura la URL pública HTTPS como `NEXT_PUBLIC_SITE_URL` y usa credenciales de producción. Para pruebas, usa credenciales de prueba y una URL pública de túnel para que el webhook sea accesible.
