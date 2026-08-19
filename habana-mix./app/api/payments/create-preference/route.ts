@@ -135,7 +135,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ init_point: initPoint })
   } catch (error) {
     if (attendanceId) {
-      await supabaseAdmin.from('attendances').delete().eq('id', attendanceId)
+      await getSupabaseAdmin().from('attendances').delete().eq('id', attendanceId)
     }
 
     console.error('Error creando preferencia de Mercado Pago:', error)
