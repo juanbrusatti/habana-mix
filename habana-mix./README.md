@@ -208,14 +208,13 @@ Los pagos rechazados o abandonados no crean asistencias y permiten volver a inte
 
 Cuando un pago queda aprobado se genera un código único de cinco caracteres y un token privado para el QR. La pantalla `/pago/exito` muestra ambos y permite descargar un archivo con la entrada. También se envía por email un enlace privado para volver a abrirla y descargarla.
 
-El personal puede usar `/control-acceso`, ingresar la clave configurada en `ACCESS_CONTROL_KEY` y validar el código manualmente o escanear el QR desde un navegador compatible. Una entrada aprobada solo puede marcarse como utilizada una vez.
+El personal puede usar `/control-acceso` e ingresar con el mismo usuario y contraseña del panel admin. Luego puede validar el código manualmente o escanear el QR desde un navegador móvil compatible. Una entrada aprobada solo puede marcarse como utilizada una vez.
 
 Para el envío de emails se usa Resend:
 
 ```env
 RESEND_API_KEY=tu_api_key_de_resend
 RESEND_FROM_EMAIL="Habana Mix <entradas@tu-dominio.com>"
-ACCESS_CONTROL_KEY=una_clave_larga_y_privada
 ```
 
 `RESEND_FROM_EMAIL` debe usar un dominio verificado en Resend. Si Resend no está configurado, el pago y el ticket funcionan igual, pero el enlace solo estará disponible en la pantalla de éxito.

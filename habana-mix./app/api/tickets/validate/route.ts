@@ -4,16 +4,23 @@ import { getSupabaseAdmin } from '@/lib/supabase-admin'
 
 export async function POST(req: Request) {
   try {
-    const accessKey = process.env.ACCESS_CONTROL_KEY
-    if (!accessKey || req.headers.get('x-access-key') !== accessKey) {
-      return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
-    }
+    const adminId = req.headers.get('x-admin-id')
+    if (!adminId) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
 
     const body = await req.json()
     const value = String(body?.value || '').trim()
     if (!value) return NextResponse.json({ error: 'Ingresá un código o QR' }, { status: 400 })
 
     const supabaseAdmin = getSupabaseAdmin()
+    const { data: admin, error: adminError } = await supabaseAdmin
+      .from('admin_credentials')
+      .select('id')
+      .eq('id', adminId)
+      .eq('is_active', true)
+      .maybeSingle()
+
+    if (adminError) throw adminError
+    if (!admin) return NextResponse.json({ error: 'Sesión no autorizada' }, { status: 401 })
     const isCode = /^[A-Z0-9]{5}$/.test(value.toUpperCase())
     const query = supabaseAdmin
       .from('attendances')

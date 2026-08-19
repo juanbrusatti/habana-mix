@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import {
   Dialog,
   DialogContent,
@@ -25,6 +26,8 @@ interface Attendance {
   email: string
   is_free: boolean
   payment_status: 'pending' | 'approved' | 'rejected' | 'refunded'
+  ticket_code: string | null
+  ticket_token: string | null
   created_at: string
 }
 
@@ -79,9 +82,13 @@ const buildPrintableFreeAttendanceHtml = (eventTitle: string, list: Attendance[]
 function AttendanceRecordRow({
   record,
   onDelete,
+  onTicket,
+  onResendTicket,
 }: {
   record: Attendance
   onDelete: (id: string, name: string, surname: string) => void
+  onTicket?: (record: Attendance) => void
+  onResendTicket?: (record: Attendance) => void
 }) {
   return (
     <li className="border rounded-lg p-3 text-sm">
@@ -95,13 +102,11 @@ function AttendanceRecordRow({
           </div>
         </div>
 
-        <Button
-          variant="destructive"
-          size="sm"
-          onClick={() => onDelete(record.id, record.name, record.surname)}
-        >
-          Eliminar
-        </Button>
+        <div className="flex shrink-0 flex-wrap justify-end gap-2">
+          {onTicket && !record.is_free && <Button variant="outline" size="sm" onClick={() => onTicket(record)}>Entrada</Button>}
+          {onResendTicket && !record.is_free && <Button variant="outline" size="sm" onClick={() => onResendTicket(record)}>Reenviar</Button>}
+          <Button variant="destructive" size="sm" onClick={() => onDelete(record.id, record.name, record.surname)}>Eliminar</Button>
+        </div>
       </div>
     </li>
   )
@@ -113,21 +118,29 @@ export function AttendanceAdmin() {
   const [selectedEvent, setSelectedEvent] = useState<string | null>(null)
   const [eventSearchTerm, setEventSearchTerm] = useState<Record<string, string>>({})
   const [pendingDelete, setPendingDelete] = useState<{ id: string; name: string; surname: string } | null>(null)
+  const [adminId, setAdminId] = useState('')
+  const [giftOpen, setGiftOpen] = useState(false)
+  const [events, setEvents] = useState<Array<{ id: string; title: string }>>([])
+  const [giftForm, setGiftForm] = useState({ event_id: '', name: '', surname: '', dni: '', phone: '', email: '' })
+  const [giftLoading, setGiftLoading] = useState(false)
 
   useEffect(() => {
     load()
+    try { setAdminId(JSON.parse(localStorage.getItem('admin_session') || '{}').admin_id || '') } catch { setAdminId('') }
+    supabase.from('events').select('id, title').eq('status', 'published').order('starts_at', { ascending: true }).then(({ data }) => setEvents(data || []))
   }, [])
 
   const load = async () => {
     setLoading(true)
     try {
-      const { data, error } = await supabase
-        .from('attendances')
-        .select('*')
-        .order('created_at', { ascending: false })
-
-      if (error) throw error
-      setAttendances(data || [])
+      let currentAdminId = adminId
+      if (!currentAdminId) {
+        try { currentAdminId = JSON.parse(localStorage.getItem('admin_session') || '{}').admin_id || '' } catch { currentAdminId = '' }
+      }
+      const response = await fetch('/api/admin/attendances', { headers: { 'x-admin-id': currentAdminId } })
+      const result = await response.json()
+      if (!response.ok) throw new Error(result.error || 'Error al cargar asistencias')
+      setAttendances(result.data || [])
     } catch (err) {
       console.error(err)
       toast.error('Error al cargar asistencias')
@@ -174,6 +187,37 @@ export function AttendanceAdmin() {
     setTimeout(() => {
       printWindow.print()
     }, 250)
+  }
+
+  const handleTicket = async (record: Attendance) => {
+    if (!adminId) return
+    const response = await fetch(`/api/admin/tickets/${record.id}`, { headers: { 'x-admin-id': adminId } })
+    const data = await response.json()
+    if (!response.ok) { toast.error(data.error || 'No se pudo recuperar la entrada'); return }
+    window.open(data.ticketUrl, '_blank', 'noopener,noreferrer')
+  }
+
+  const handleResendTicket = async (record: Attendance) => {
+    if (!adminId) return
+    const response = await fetch(`/api/admin/tickets/${record.id}`, { method: 'POST', headers: { 'x-admin-id': adminId } })
+    const data = await response.json()
+    if (!response.ok) { toast.error(data.error || 'No se pudo reenviar la entrada'); return }
+    toast.success('Entrada reenviada por email')
+  }
+
+  const createGift = async (event: React.FormEvent) => {
+    event.preventDefault()
+    setGiftLoading(true)
+    try {
+      const response = await fetch('/api/admin/attendances/gift', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-admin-id': adminId }, body: JSON.stringify(giftForm) })
+      const data = await response.json()
+      if (!response.ok) throw new Error(data.error || 'No se pudo crear la invitación')
+      toast.success('Invitación creada con QR y código único')
+      setGiftOpen(false)
+      setGiftForm({ event_id: '', name: '', surname: '', dni: '', phone: '', email: '' })
+      load()
+    } catch (error) { toast.error(error instanceof Error ? error.message : 'No se pudo crear la invitación') }
+    finally { setGiftLoading(false) }
   }
 
   const gratuitos = attendances.filter((a) => a.is_free)
@@ -267,7 +311,19 @@ export function AttendanceAdmin() {
         </DialogContent>
       </Dialog>
 
+      <Dialog open={giftOpen} onOpenChange={setGiftOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader><DialogTitle>Crear invitación</DialogTitle><DialogDescription>Generá una entrada paga sin cobrarle al invitado.</DialogDescription></DialogHeader>
+          <form onSubmit={createGift} className="space-y-3">
+            <select className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={giftForm.event_id} onChange={(event) => setGiftForm({ ...giftForm, event_id: event.target.value })} required><option value="">Elegir evento</option>{events.map((event) => <option key={event.id} value={event.id}>{event.title}</option>)}</select>
+            {(['name', 'surname', 'dni', 'phone', 'email'] as const).map((field) => <Input key={field} required type={field === 'email' ? 'email' : 'text'} placeholder={field === 'name' ? 'Nombre' : field === 'surname' ? 'Apellido' : field.toUpperCase()} value={giftForm[field]} onChange={(event) => setGiftForm({ ...giftForm, [field]: event.target.value })} />)}
+            <DialogFooter><Button type="button" variant="outline" onClick={() => setGiftOpen(false)}>Cancelar</Button><Button type="submit" disabled={giftLoading}>{giftLoading ? 'Creando…' : 'Crear entrada'}</Button></DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
       <Tabs defaultValue="gratuitos">
+        <div className="mb-3 flex justify-end"><Button onClick={() => setGiftOpen(true)}>Crear invitación paga</Button></div>
         <TabsList>
           <TabsTrigger value="gratuitos">Gratuitos ({gratuitos.length})</TabsTrigger>
           <TabsTrigger value="pagos">Pagos ({pagos.length})</TabsTrigger>
@@ -337,6 +393,8 @@ export function AttendanceAdmin() {
                                 key={record.id}
                                 record={record}
                                 onDelete={handleDeleteAttendance}
+                                onTicket={handleTicket}
+                                onResendTicket={handleResendTicket}
                               />
                             ))}
                           </ul>
@@ -405,6 +463,8 @@ export function AttendanceAdmin() {
                               key={record.id}
                               record={record}
                               onDelete={handleDeleteAttendance}
+                              onTicket={handleTicket}
+                              onResendTicket={handleResendTicket}
                             />
                           ))}
                         </ul>
