@@ -190,6 +190,7 @@ Ejecuta en Supabase, en orden, las migraciones nuevas:
 3. `migrate/022_cascade_delete_attendances_on_event_delete.sql` si aún no fue ejecutada
 4. `migrate/024_paid_checkout_orders.sql`
 5. `migrate/025_cleanup_unapproved_paid_attendances.sql` para limpiar registros pagos antiguos no aprobados
+6. `migrate/026_tickets_and_access_control.sql`
 
 ### Flujo de pago
 
@@ -202,5 +203,21 @@ Ejecuta en Supabase, en orden, las migraciones nuevas:
 7. Solo si el pago está `approved` se crea la asistencia definitiva en `attendances`.
 
 Los pagos rechazados o abandonados no crean asistencias y permiten volver a intentar con los mismos datos.
+
+## Entradas QR y control de acceso
+
+Cuando un pago queda aprobado se genera un código único de cinco caracteres y un token privado para el QR. La pantalla `/pago/exito` muestra ambos y permite descargar un archivo con la entrada. También se envía por email un enlace privado para volver a abrirla y descargarla.
+
+El personal puede usar `/control-acceso`, ingresar la clave configurada en `ACCESS_CONTROL_KEY` y validar el código manualmente o escanear el QR desde un navegador compatible. Una entrada aprobada solo puede marcarse como utilizada una vez.
+
+Para el envío de emails se usa Resend:
+
+```env
+RESEND_API_KEY=tu_api_key_de_resend
+RESEND_FROM_EMAIL="Habana Mix <entradas@tu-dominio.com>"
+ACCESS_CONTROL_KEY=una_clave_larga_y_privada
+```
+
+`RESEND_FROM_EMAIL` debe usar un dominio verificado en Resend. Si Resend no está configurado, el pago y el ticket funcionan igual, pero el enlace solo estará disponible en la pantalla de éxito.
 
 Para producción, configura la URL pública HTTPS como `NEXT_PUBLIC_SITE_URL` y usa credenciales de producción. Para pruebas, usa credenciales de prueba y una URL pública de túnel para que el webhook sea accesible.
