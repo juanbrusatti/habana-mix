@@ -18,6 +18,8 @@ interface Event {
   location: string | null
   is_free: boolean
   price_label: string | null
+  price_amount: number | null
+  price_currency: string
   cta_label: string
   cta_url: string | null
   theme: string
