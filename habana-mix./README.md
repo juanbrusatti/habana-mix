@@ -164,3 +164,38 @@ Se agregó un sistema simple para que, cuando un evento está marcado como gratu
 - Panel admin: nueva vista en `/admin/dashboard` → pestaña `Asistencia` con separación `Gratuitos` / `Pagos` y agrupado por título del evento.
 
 Para aplicar los cambios en Supabase ejecuta la migración (`018_create_attendances_table.sql`) desde el SQL Editor.
+
+## Checkout de eventos pagos con Mercado Pago
+
+Los eventos pagos usan Checkout Pro. El admin carga un monto numérico en ARS; ese es el importe final que se cobra al comprador. Mercado Pago descuenta sus cargos según la cuenta y el medio de pago. No se debe calcular una comisión fija en el frontend.
+
+### Variables necesarias
+
+Agrega estas variables en `.env.local` y en el proveedor de deploy:
+
+```env
+MERCADOPAGO_ACCESS_TOKEN=tu_access_token_de_mercado_pago
+NEXT_PUBLIC_SITE_URL=https://tu-dominio.com
+SUPABASE_SERVICE_ROLE_KEY=tu_service_role_key
+```
+
+`SUPABASE_SERVICE_ROLE_KEY` es exclusivamente server-side y nunca debe comenzar con `NEXT_PUBLIC_` ni llegar al navegador.
+
+### Migraciones
+
+Ejecuta en Supabase, en orden, las migraciones nuevas:
+
+1. `migrate/023_add_paid_event_checkout.sql`
+2. `migrate/021_attendances_delete_policy.sql` si aún no fue ejecutada
+3. `migrate/022_cascade_delete_attendances_on_event_delete.sql` si aún no fue ejecutada
+
+### Flujo de pago
+
+1. El visitante completa nombre, apellido, DNI, email y teléfono.
+2. El servidor obtiene el precio desde `events.price_amount`; nunca acepta un precio enviado por el navegador.
+3. Se crea una asistencia `pending` y una preferencia de Mercado Pago.
+4. El visitante es redirigido a Mercado Pago.
+5. Mercado Pago llama a `POST /api/payments/webhook`.
+6. El webhook consulta el pago en Mercado Pago, valida importe y moneda, y recién entonces marca la asistencia como `approved`.
+
+Para producción, configura la URL pública HTTPS como `NEXT_PUBLIC_SITE_URL` y usa credenciales de producción. Para pruebas, usa credenciales de prueba y una URL pública de túnel para que el webhook sea accesible.

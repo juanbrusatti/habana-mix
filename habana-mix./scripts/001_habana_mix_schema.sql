@@ -96,6 +96,8 @@ create table if not exists public.events (
   ends_at         timestamptz,
   location        text,
   price_label     text,               -- "Entrada $25" / "Gratis con clase"
+  price_amount    numeric(12,2),
+  price_currency  text not null default 'ARS',
   cta_label       text default 'Reservar lugar',
   cta_url         text,
   -- personalización visual

@@ -22,6 +22,8 @@ export interface AcademyEvent {
   ends_at: string | null
   location: string | null
   price_label: string | null
+  price_amount: number | null
+  price_currency: string
   is_free: boolean
   cta_label: string | null
   cta_url: string | null
@@ -100,6 +102,13 @@ export interface Attendance {
   phone: string
   email: string
   is_free: boolean
+  payment_status: 'pending' | 'approved' | 'rejected' | 'refunded'
+  payment_provider: string | null
+  payment_preference_id: string | null
+  payment_id: string | null
+  payment_amount: number | null
+  payment_currency: string | null
+  paid_at: string | null
   created_at: string
 }
 

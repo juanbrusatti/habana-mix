@@ -7,6 +7,7 @@ import { getCardTheme } from '@/lib/card-theme'
 import type { AcademyEvent } from '@/lib/types'
 import { cn } from '@/lib/utils'
 import { FreeAttendanceDialog } from '@/components/free-attendance-dialog'
+import { PaidAttendanceDialog } from '@/components/paid-attendance-dialog'
 
 function formatDate(iso: string) {
   return new Intl.DateTimeFormat('es-ES', {
@@ -225,6 +226,23 @@ export function EventCard({ event }: { event: AcademyEvent }) {
             <FreeAttendanceDialog
               eventId={event.id}
               eventTitle={event.title}
+              open={open}
+              onOpenChange={setOpen}
+            />
+          </>
+        ) : event.price_amount ? (
+          <>
+            <Button
+              className={cn(ctaClassName, t.accentBg)}
+              style={ctaStyle}
+              onClick={() => setOpen(true)}
+            >
+              {event.cta_label ?? 'Comprar entrada'}
+            </Button>
+            <PaidAttendanceDialog
+              eventId={event.id}
+              eventTitle={event.title}
+              amount={event.price_amount}
               open={open}
               onOpenChange={setOpen}
             />
