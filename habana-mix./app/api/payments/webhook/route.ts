@@ -34,37 +34,37 @@ export async function POST(req: Request) {
     }
     const paymentStatus = statusMap[payment.status || ''] || 'pending'
 
-    const { data: attendance, error: attendanceError } = await supabaseAdmin
-      .from('attendances')
-      .select('id, payment_amount, payment_currency')
+    const { data: order, error: orderError } = await supabaseAdmin
+      .from('payment_orders')
+      .select('id, amount, currency')
       .eq('id', attendanceId)
       .maybeSingle()
 
-    if (attendanceError) throw attendanceError
-    if (!attendance) return NextResponse.json({ received: true })
+    if (orderError) throw orderError
+    if (!order) return NextResponse.json({ received: true })
 
-    const amountMatches = Number(payment.transaction_amount) === Number(attendance.payment_amount)
-    const currencyMatches = !attendance.payment_currency || payment.currency_id === attendance.payment_currency
+    const amountMatches = Number(payment.transaction_amount) === Number(order.amount)
+    const currencyMatches = !order.currency || payment.currency_id === order.currency
 
     if (paymentStatus === 'approved' && (!amountMatches || !currencyMatches)) {
       console.error('Pago de Mercado Pago rechazado por importe o moneda inesperados', {
         attendanceId,
         transactionAmount: payment.transaction_amount,
-        expectedAmount: attendance.payment_amount,
+        expectedAmount: order.amount,
         currency: payment.currency_id,
-        expectedCurrency: attendance.payment_currency,
+        expectedCurrency: order.currency,
       })
       return NextResponse.json({ received: true })
     }
 
     const { error: updateError } = await supabaseAdmin
-      .from('attendances')
+      .from('payment_orders')
       .update({
-        payment_status: paymentStatus,
+        status: paymentStatus,
         payment_id: String(payment.id),
-        paid_at: paymentStatus === 'approved' ? new Date().toISOString() : null,
+        approved_at: paymentStatus === 'approved' ? new Date().toISOString() : null,
       })
-      .eq('id', attendanceId)
+      .eq('id', order.id)
 
     if (updateError) throw updateError
 

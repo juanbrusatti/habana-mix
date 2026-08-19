@@ -189,6 +189,16 @@ export function AttendanceAdmin() {
     [gratuitos],
   )
 
+  const groupedPaidByEvent = useMemo(
+    () =>
+      pagos.reduce<Record<string, Attendance[]>>((acc, cur) => {
+        acc[cur.event_title] = acc[cur.event_title] || []
+        acc[cur.event_title].push(cur)
+        return acc
+      }, {}),
+    [pagos],
+  )
+
   const filteredEventList = useMemo(() => {
     return Object.entries(groupedByEvent).reduce<Record<string, Attendance[]>>((acc, [title, list]) => {
       const normalizedSearch = (eventSearchTerm[title] || '').trim().toLowerCase()
@@ -210,6 +220,25 @@ export function AttendanceAdmin() {
       return acc
     }, {})
   }, [groupedByEvent, eventSearchTerm])
+
+  const filteredPaidEventList = useMemo(() => {
+    return Object.entries(groupedPaidByEvent).reduce<Record<string, Attendance[]>>((acc, [title, list]) => {
+      const normalizedSearch = (eventSearchTerm[`paid:${title}`] || '').trim().toLowerCase()
+
+      if (!normalizedSearch) {
+        acc[title] = list
+        return acc
+      }
+
+      const matches = list.filter((record) => {
+        const haystack = `${record.name} ${record.surname} ${record.dni} ${record.phone} ${record.email}`.toLowerCase()
+        return haystack.includes(normalizedSearch)
+      })
+
+      if (matches.length > 0) acc[title] = matches
+      return acc
+    }, {})
+  }, [groupedPaidByEvent, eventSearchTerm])
 
   return (
     <div className="space-y-4">
@@ -324,25 +353,64 @@ export function AttendanceAdmin() {
         <TabsContent value="pagos">
           {loading ? (
             <p>Cargando…</p>
-          ) : pagos.length === 0 ? (
+          ) : Object.keys(filteredPaidEventList).length === 0 ? (
             <p>No hay registros de pago aún.</p>
           ) : (
-            <div className="space-y-2">
-              {pagos.map((r) => (
-                <div key={r.id} className="border rounded-lg p-3 text-sm">
+            <div className="space-y-3">
+              {Object.entries(filteredPaidEventList).map(([title, list]) => (
+                <div key={title} className="border rounded-lg p-3">
                   <div className="flex items-center justify-between gap-3">
-                    <div className="font-semibold">{r.event_title}</div>
-                    <span className="text-xs font-semibold uppercase text-muted-foreground">
-                      {r.payment_status === 'approved'
-                        ? 'Aprobado'
-                        : r.payment_status === 'rejected'
-                          ? 'Rechazado'
-                          : r.payment_status === 'refunded'
-                            ? 'Reintegrado'
-                            : 'Pendiente'}
-                    </span>
+                    <div className="font-semibold">{title}</div>
+                    <div className="flex items-center gap-2">
+                      <div className="text-sm text-muted-foreground">{list.length} registros</div>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setSelectedEvent(selectedEvent === `paid:${title}` ? null : `paid:${title}`)}
+                      >
+                        {selectedEvent === `paid:${title}` ? 'Ocultar' : 'Ver registros'}
+                      </Button>
+                    </div>
                   </div>
-                  <div>{r.name} {r.surname} · {r.dni} · {r.phone} · {r.email}</div>
+
+                  {selectedEvent === `paid:${title}` && (
+                    <div className="mt-3 space-y-3">
+                      <div className="flex items-center gap-2">
+                        <input
+                          value={eventSearchTerm[`paid:${title}`] || ''}
+                          onChange={(event) =>
+                            setEventSearchTerm((current) => ({
+                              ...current,
+                              [`paid:${title}`]: event.target.value,
+                            }))
+                          }
+                          placeholder="Buscar en este evento"
+                          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                        />
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handlePrintFreeAttendanceList(title, list)}
+                        >
+                          Exportar PDF
+                        </Button>
+                      </div>
+
+                      {list.length === 0 ? (
+                        <p className="text-sm text-muted-foreground">No hay coincidencias para este evento.</p>
+                      ) : (
+                        <ul className="space-y-2">
+                          {list.map((record) => (
+                            <AttendanceRecordRow
+                              key={record.id}
+                              record={record}
+                              onDelete={handleDeleteAttendance}
+                            />
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

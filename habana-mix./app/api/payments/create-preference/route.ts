@@ -14,7 +14,7 @@ const duplicateMessages = {
 } as const
 
 export async function POST(req: Request) {
-  let attendanceId: string | null = null
+  let orderId: string | null = null
 
   try {
     const supabaseAdmin = getSupabaseAdmin()
@@ -52,7 +52,7 @@ export async function POST(req: Request) {
       .from('attendances')
       .select('dni, phone, email')
       .eq('event_id', payload.event_id)
-      .in('payment_status', ['pending', 'approved'])
+      .eq('payment_status', 'approved')
       .or(`dni.eq.${payload.dni},phone.eq.${payload.phone},email.eq.${payload.email}`)
 
     if (duplicateError) throw duplicateError
@@ -72,22 +72,20 @@ export async function POST(req: Request) {
     const amount = Number(event.price_amount)
     const currency = event.price_currency || 'ARS'
 
-    const { data: attendance, error: attendanceError } = await supabaseAdmin
-      .from('attendances')
+    const { data: order, error: orderError } = await supabaseAdmin
+      .from('payment_orders')
       .insert({
         event_title: event.title,
         ...payload,
-        is_free: false,
-        payment_status: 'pending',
-        payment_provider: 'mercadopago',
-        payment_amount: amount,
-        payment_currency: currency,
+        amount,
+        currency,
+        status: 'pending',
       })
       .select('id')
       .single()
 
-    if (attendanceError) throw attendanceError
-    attendanceId = attendance.id
+    if (orderError) throw orderError
+    orderId = order.id
 
     const accessToken = process.env.MERCADOPAGO_ACCESS_TOKEN
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL
@@ -109,7 +107,7 @@ export async function POST(req: Request) {
           },
         ],
         payer: { email: payload.email },
-        external_reference: attendance.id,
+        external_reference: order.id,
         notification_url: `${siteUrl}/api/payments/webhook`,
         back_urls: {
           success: `${siteUrl}/pago/exito`,
@@ -126,16 +124,16 @@ export async function POST(req: Request) {
     if (!preferenceId || !initPoint) throw new Error('Mercado Pago no devolvió el enlace de pago')
 
     const { error: updateError } = await supabaseAdmin
-      .from('attendances')
-      .update({ payment_preference_id: preferenceId })
-      .eq('id', attendance.id)
+      .from('payment_orders')
+      .update({ preference_id: preferenceId })
+      .eq('id', order.id)
 
     if (updateError) throw updateError
 
     return NextResponse.json({ init_point: initPoint })
   } catch (error) {
-    if (attendanceId) {
-      await getSupabaseAdmin().from('attendances').delete().eq('id', attendanceId)
+    if (orderId) {
+      await getSupabaseAdmin().from('payment_orders').delete().eq('id', orderId)
     }
 
     console.error('Error creando preferencia de Mercado Pago:', error)
