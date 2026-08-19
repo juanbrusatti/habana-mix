@@ -21,6 +21,8 @@ interface Event {
   location: string | null
   is_free: boolean
   price_label: string | null
+  price_amount: number | null
+  price_currency: string
   cta_label: string
   cta_url: string | null
   theme: string
@@ -44,6 +46,8 @@ interface EventFormData {
   location: string
   is_free: boolean
   price_label: string
+  price_amount: string
+  price_currency: string
   cta_label: string
   cta_url: string
   theme: string
@@ -67,6 +71,8 @@ const emptyEvent: EventFormData = {
   location: '',
   is_free: true,
   price_label: '',
+  price_amount: '',
+  price_currency: 'ARS',
   cta_label: 'Reservar lugar',
   cta_url: '',
   theme: 'amber',
@@ -130,6 +136,8 @@ export function EventsEditor() {
       location: event.location || '',
       is_free: event.is_free,
       price_label: event.price_label || '',
+      price_amount: event.price_amount?.toString() || '',
+      price_currency: event.price_currency || 'ARS',
       cta_url: event.cta_url || '',
       accent_color: event.accent_color || ''
     })
@@ -211,9 +219,15 @@ export function EventsEditor() {
     setSaving(true)
 
     try {
+      if (!formData.is_free && (!formData.price_amount || Number(formData.price_amount) <= 0)) {
+        toast.error('Ingresa un precio válido para el evento')
+        return
+      }
+
       const eventData = {
         ...formData,
         tags: formData.tags.split(',').map(t => t.trim()).filter(t => t),
+        price_amount: formData.is_free ? null : Number(formData.price_amount),
         starts_at: new Date(formData.starts_at).toISOString(),
         ends_at: formData.ends_at ? new Date(formData.ends_at).toISOString() : null
       }
@@ -396,7 +410,7 @@ export function EventsEditor() {
                     type="radio"
                     name="is_free"
                     checked={formData.is_free}
-                    onChange={() => setFormData({ ...formData, is_free: true, price_label: '' })}
+                    onChange={() => setFormData({ ...formData, is_free: true, price_label: '', price_amount: '' })}
                     className="w-4 h-4"
                   />
                   <span>Gratuito</span>
@@ -415,14 +429,29 @@ export function EventsEditor() {
             </div>
 
             {!formData.is_free && (
-              <div className="space-y-2">
-                <Label htmlFor="price_label">Precio</Label>
-                <Input
-                  id="price_label"
-                  value={formData.price_label}
-                  onChange={(e) => setFormData({ ...formData, price_label: e.target.value })}
-                  placeholder="Entrada $20 · Alumnos gratis"
-                />
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="price_amount">Monto a cobrar (ARS) *</Label>
+                  <Input
+                    id="price_amount"
+                    type="number"
+                    min="1"
+                    step="0.01"
+                    value={formData.price_amount}
+                    onChange={(e) => setFormData({ ...formData, price_amount: e.target.value })}
+                    placeholder="20000"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="price_label">Texto visible del precio</Label>
+                  <Input
+                    id="price_label"
+                    value={formData.price_label}
+                    onChange={(e) => setFormData({ ...formData, price_label: e.target.value })}
+                    placeholder="Entrada $20.000"
+                  />
+                </div>
               </div>
             )}
 

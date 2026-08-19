@@ -24,6 +24,7 @@ interface Attendance {
   phone: string
   email: string
   is_free: boolean
+  payment_status: 'pending' | 'approved' | 'rejected' | 'refunded'
   created_at: string
 }
 
@@ -329,7 +330,18 @@ export function AttendanceAdmin() {
             <div className="space-y-2">
               {pagos.map((r) => (
                 <div key={r.id} className="border rounded-lg p-3 text-sm">
-                  <div className="font-semibold">{r.event_title}</div>
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="font-semibold">{r.event_title}</div>
+                    <span className="text-xs font-semibold uppercase text-muted-foreground">
+                      {r.payment_status === 'approved'
+                        ? 'Aprobado'
+                        : r.payment_status === 'rejected'
+                          ? 'Rechazado'
+                          : r.payment_status === 'refunded'
+                            ? 'Reintegrado'
+                            : 'Pendiente'}
+                    </span>
+                  </div>
                   <div>{r.name} {r.surname} · {r.dni} · {r.phone} · {r.email}</div>
                 </div>
               ))}
