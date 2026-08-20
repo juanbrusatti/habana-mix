@@ -40,34 +40,34 @@
 .dark {
   color-scheme: dark;
 
-  /* Neutrals */
-  --background: oklch(0.16 0.015 40);
-  --foreground: oklch(0.96 0.012 85);
-  --card: oklch(0.21 0.018 40);
-  --card-foreground: oklch(0.96 0.012 85);
-  --popover: oklch(0.19 0.018 40);
-  --popover-foreground: oklch(0.96 0.012 85);
-  --muted: oklch(0.26 0.018 40);
-  --muted-foreground: oklch(0.72 0.02 70);
+  /* Neutrals cálidos - paleta elegante nocturna */
+  --background: oklch(0.18 0.02 35); /* #100B09 - negro cálido */
+  --foreground: oklch(0.92 0.01 85); /* #F2E7D0 - crema */
+  --card: oklch(0.22 0.025 38); /* #1C1512 - marrón muy oscuro */
+  --card-foreground: oklch(0.92 0.01 85);
+  --popover: oklch(0.20 0.025 38);
+  --popover-foreground: oklch(0.92 0.01 85);
+  --muted: oklch(0.28 0.025 40);
+  --muted-foreground: oklch(0.65 0.02 75); /* #CBBDA6 - beige secundario */
 
-  /* Primary: ámbar habanero */
-  --primary: oklch(0.79 0.152 68);
-  --primary-foreground: oklch(0.18 0.03 45);
+  /* Primary: dorado/ocre elegante */
+  --primary: oklch(0.68 0.08 65); /* #C89A3D - dorado apagado */
+  --primary-foreground: oklch(0.20 0.03 40);
 
-  /* Accent: coral cubano */
-  --accent: oklch(0.58 0.19 25);
-  --accent-foreground: oklch(0.97 0.01 85);
+  /* Accent: terracota sofisticado */
+  --accent: oklch(0.55 0.12 25); /* #A95132 - terracota */
+  --accent-foreground: oklch(0.94 0.01 85);
 
-  /* Secondary: verde mar / turquesa caribe */
-  --secondary: oklch(0.62 0.11 185);
-  --secondary-foreground: oklch(0.16 0.02 40);
+  /* Secondary: crema cálido para acciones secundarias */
+  --secondary: oklch(0.85 0.03 70); /* crema más claro */
+  --secondary-foreground: oklch(0.20 0.03 40);
 
-  --destructive: oklch(0.58 0.2 25);
-  --border: oklch(0.96 0.012 85 / 12%);
-  --input: oklch(0.96 0.012 85 / 16%);
-  --ring: oklch(0.79 0.152 68);
+  --destructive: oklch(0.55 0.15 25);
+  --border: oklch(0.92 0.01 85 / 10%); /* border muy sutil */
+  --input: oklch(0.92 0.01 85 / 12%);
+  --ring: oklch(0.68 0.08 65);
 
-  --radius: 0.875rem;
+  --radius: 0.75rem; /* slightly more refined */
 }
 
 @layer base {
@@ -88,7 +88,7 @@
   background-image: linear-gradient(
     100deg,
     var(--primary) 0%,
-    oklch(0.72 0.17 45) 55%,
+    oklch(0.75 0.06 60) 55%,
     var(--accent) 100%
   );
   -webkit-background-clip: text;
@@ -101,13 +101,13 @@
   position: relative;
 }
 
-/* Reveal on scroll */
+/* Reveal on scroll - más sutil y elegante */
 .reveal {
   opacity: 0;
-  transform: translateY(28px) scale(0.985);
+  transform: translateY(20px) scale(0.98);
   transition:
-    opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1),
-    transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+    opacity 0.8s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
   will-change: opacity, transform;
 }
 .reveal[data-visible='true'] {
@@ -117,14 +117,14 @@
 
 @keyframes ken-burns {
   0% {
-    transform: scale(1.08) translate3d(0, 0, 0);
+    transform: scale(1.05) translate3d(0, 0, 0);
   }
   100% {
-    transform: scale(1.22) translate3d(-1.5%, -1.5%, 0);
+    transform: scale(1.12) translate3d(-1%, -1%, 0);
   }
 }
 .animate-ken-burns {
-  animation: ken-burns 26s ease-in-out infinite alternate;
+  animation: ken-burns 32s ease-in-out infinite alternate;
 }
 
 @keyframes marquee-x {

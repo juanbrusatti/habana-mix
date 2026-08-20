@@ -113,7 +113,7 @@ export function LocationSection() {
     <section
       id="como-llegar"
       aria-labelledby="como-llegar-title"
-      className="scroll-mt-16 px-5 py-20 sm:px-8 sm:py-28"
+      className="scroll-mt-16 px-4 py-16 sm:px-6 sm:py-20 md:px-8 md:py-28"
     >
       <div className="mx-auto max-w-6xl">
         <SectionHeading

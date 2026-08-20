@@ -96,8 +96,8 @@ export function Hero() {
     return (
       <header className="relative isolate flex h-[100svh] min-h-[560px] w-full items-end overflow-hidden">
         <div className="absolute inset-0 -z-20 bg-muted" />
-        <div className="relative z-10 w-full px-6 pb-16 sm:px-8 md:pb-24">
-          <div className="mx-auto flex max-w-5xl flex-col items-center text-center">
+        <div className="relative z-10 w-full px-4 pb-16 sm:px-6 md:pb-24">
+          <div className="mx-auto flex max-w-5xl flex-col items-center px-2 text-center sm:px-4">
             <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
           </div>
         </div>
@@ -148,51 +148,51 @@ export function Hero() {
         />
       </div>
 
-      {/* Capa 2: viñeta y degradados para legibilidad */}
+      {/* Capa 2: viñeta y degradados para legibilidad - más sutil y cinematográfico */}
       <div
         aria-hidden
-        className="absolute inset-0 -z-10 bg-gradient-to-b from-background/70 via-background/25 to-background"
+        className="absolute inset-0 -z-10 bg-gradient-to-b from-background/60 via-background/20 to-background/90"
       />
       <div
         aria-hidden
-        className="absolute inset-0 -z-10 bg-[radial-gradient(120%_80%_at_50%_10%,transparent_25%,oklch(0.16_0.015_40/0.85)_100%)]"
+        className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_50%_0%,transparent_0%,oklch(0.18_0.02_35/0.7)_70%)]"
       />
 
       {/* Capa 3: contenido — se mueve más rápido y se desvanece */}
       <div
-        className="relative z-10 w-full px-6 pb-16 will-change-transform sm:px-8 md:pb-24"
+        className="relative z-10 w-full px-4 pb-16 will-change-transform sm:px-6 md:pb-24"
         style={{
           transform: `translate3d(0, ${progress * -46}px, 0)`,
           opacity: 1 - progress * 1.25,
         }}
       >
-        <div className="mx-auto flex max-w-5xl flex-col items-center text-center">
-          <span 
-            className="mb-5 inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-[11px] font-medium tracking-[0.22em] uppercase backdrop-blur-md"
+        <div className="mx-auto flex max-w-5xl flex-col items-center px-2 text-center sm:px-4">
+          <span
+            className="mb-6 inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-[10px] font-medium tracking-[0.25em] uppercase backdrop-blur-md"
             style={{
               backgroundColor: config.badge_color,
-              borderColor: config.badge_text_color + '30',
+              borderColor: config.badge_text_color + '25',
               color: config.badge_text_color
             }}
           >
             {config.badge_text}
           </span>
 
-          <h1 
-            className={`font-serif leading-[0.88] font-semibold tracking-tight text-balance sm:text-7xl md:text-8xl ${getTailwindSize(config.title_size)}`}
+          <h1
+            className={`font-serif leading-[0.92] font-semibold tracking-tight text-balance text-5xl sm:text-6xl md:text-7xl lg:text-8xl ${getTailwindSize(config.title_size)}`}
             style={{ color: config.title_color }}
           >
             {config.title}
           </h1>
 
-          <p 
-            className={`mt-5 max-w-md leading-relaxed text-pretty sm:max-w-lg ${getTailwindSize(config.subtitle_size)}`}
+          <p
+            className={`mt-4 max-w-md leading-relaxed text-pretty text-sm sm:mt-5 sm:max-w-lg sm:text-base ${getTailwindSize(config.subtitle_size)}`}
             style={{ color: config.subtitle_color }}
           >
             {config.subtitle}
           </p>
 
-          <div className="mt-8 flex w-full justify-center">
+          <div className="mt-8 flex w-full justify-center sm:mt-10">
             <Button
               size="lg"
               onClick={() =>
@@ -200,7 +200,7 @@ export function Hero() {
                   .getElementById('eventos')
                   ?.scrollIntoView({ behavior: 'smooth' })
               }
-              className="bg-primary text-primary-foreground hover:bg-primary/90 h-13 rounded-full text-[15px] font-semibold shadow-[0_18px_45px_-18px_oklch(0.79_0.152_68/0.7)] transition-all duration-300 active:scale-[0.97] sm:px-9"
+              className="bg-primary text-primary-foreground hover:bg-primary/85 h-13 w-full max-w-xs rounded-full px-6 text-[15px] font-semibold shadow-none transition-all duration-300 active:scale-[0.97] sm:h-14 sm:w-auto sm:px-10"
             >
               Ver eventos
             </Button>

@@ -25,12 +25,12 @@ export function SectionHeading({
       )}
     >
       <div className="flex items-center gap-3">
-        <span className="bg-primary h-px w-8" />
-        <span className="text-primary text-[11px] font-semibold tracking-[0.24em] uppercase">
+        <span className="bg-primary h-px w-6 sm:w-8" />
+        <span className="text-primary text-[10px] sm:text-[11px] font-semibold tracking-[0.24em] uppercase">
           {eyebrow}
         </span>
       </div>
-      <h2 className="mt-3 font-serif text-4xl leading-[1.05] font-semibold tracking-tight text-balance sm:text-5xl md:text-6xl">
+      <h2 className="mt-3 font-serif text-3xl leading-[1.05] font-semibold tracking-tight text-balance sm:text-4xl md:text-5xl lg:text-6xl">
         {title}
       </h2>
       {description && (

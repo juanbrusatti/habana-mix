@@ -86,7 +86,7 @@ export function AboutSection() {
     <section
       id="nosotros"
       aria-labelledby="nosotros-title"
-      className="border-border/50 bg-card/25 relative scroll-mt-16 overflow-hidden border-y px-5 py-20 sm:px-8 sm:py-28"
+      className="border-border/50 bg-card/25 relative scroll-mt-16 overflow-hidden border-y px-4 py-16 sm:px-6 sm:py-20 md:px-8 md:py-28"
     >
       <div
         aria-hidden

@@ -50,7 +50,7 @@ export function EventCard({ event }: { event: AcademyEvent }) {
   const isMinimal = event.layout === 'minimal'
 
   const ctaClassName =
-    'mt-1 inline-flex h-12 w-full items-center justify-center gap-2 rounded-full border border-transparent text-[15px] font-semibold transition-all duration-300 outline-none focus-visible:ring-3 focus-visible:ring-ring/50 active:scale-[0.97]'
+    'mt-1 inline-flex h-12 w-full items-center justify-center gap-2 rounded-full border border-transparent text-[15px] font-semibold transition-all duration-300 outline-none focus-visible:ring-2 focus-visible:ring-ring/30 active:scale-[0.97]'
   const ctaStyle = event.accent_color
     ? { backgroundColor: event.accent_color, color: '#1b1410' }
     : undefined
@@ -58,10 +58,8 @@ export function EventCard({ event }: { event: AcademyEvent }) {
   return (
     <article
       className={cn(
-        'group border-border/60 bg-card relative overflow-hidden rounded-3xl border ring-1 ring-transparent transition-all duration-500',
-        'hover:-translate-y-1 active:scale-[0.99]',
-        t.glow,
-        `hover:${t.ring}`,
+        'group border-border/40 bg-card relative overflow-hidden rounded-2xl border transition-all duration-300',
+        'hover:-translate-y-0.5 hover:border-border/60',
         event.featured && 'sm:col-span-2',
       )}
     >
@@ -80,7 +78,7 @@ export function EventCard({ event }: { event: AcademyEvent }) {
           <img
             src={event.image_url || '/placeholder.svg'}
             alt={event.title}
-            className="h-full w-full object-cover transition-transform duration-[1.2s] ease-out group-hover:scale-[1.07]"
+            className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]"
             loading="lazy"
           />
           <div
@@ -120,12 +118,12 @@ export function EventCard({ event }: { event: AcademyEvent }) {
 
           {/* Título dentro de la imagen solo en layout overlay */}
           {isOverlay && (
-            <div className="absolute inset-x-0 bottom-0 p-5 sm:p-7">
-              <h3 className="font-serif text-3xl leading-tight font-semibold text-balance sm:text-4xl">
+            <div className="absolute inset-x-0 bottom-0 p-4 sm:p-6">
+              <h3 className="font-serif text-2xl leading-tight font-semibold text-balance sm:text-3xl">
                 {event.title}
               </h3>
               {event.subtitle && (
-                <p className="text-foreground/75 mt-1.5 text-sm sm:text-base">
+                <p className="text-foreground/75 mt-1 text-sm sm:text-base">
                   {event.subtitle}
                 </p>
               )}
@@ -135,7 +133,7 @@ export function EventCard({ event }: { event: AcademyEvent }) {
       )}
 
       {/* --- Cuerpo --- */}
-      <div className="flex flex-col gap-4 p-5 sm:p-6">
+      <div className="flex flex-col gap-3.5 p-4 sm:gap-4 sm:p-5">
         {!isOverlay && (
           <div>
             {isMinimal && event.tags.length > 0 && (
@@ -155,7 +153,7 @@ export function EventCard({ event }: { event: AcademyEvent }) {
                 ))}
               </ul>
             )}
-            <h3 className="font-serif text-2xl leading-tight font-semibold text-balance sm:text-3xl">
+            <h3 className="font-serif text-xl leading-tight font-semibold text-balance sm:text-2xl">
               {event.title}
             </h3>
             {event.subtitle && (
@@ -172,7 +170,7 @@ export function EventCard({ event }: { event: AcademyEvent }) {
           </p>
         )}
 
-        <dl className="grid gap-2.5 text-sm">
+        <dl className="grid gap-2 text-sm">
           <div className="flex items-center gap-2.5">
             <CalendarDays
               className={cn('h-4 w-4 shrink-0', t.accentText)}

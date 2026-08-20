@@ -62,7 +62,7 @@ export function SiteNav() {
         className={cn(
           'fixed inset-x-0 top-0 z-50 transition-all duration-500',
           solid
-            ? 'border-border/60 bg-background/80 border-b backdrop-blur-xl'
+            ? 'border-border/30 bg-background/70 border-b backdrop-blur-md'
             : 'border-b border-transparent',
         )}
       >
@@ -78,22 +78,22 @@ export function SiteNav() {
             Habana<span className="text-primary">Mix</span>
           </button>
 
-          <ul className="hidden items-center gap-1 md:flex">
+          <ul className="hidden items-center gap-6 md:flex">
             {links.map((l) => (
               <li key={l.href}>
                 <button
                   type="button"
                   onClick={() => go(l.href)}
                   className={cn(
-                    'relative rounded-full px-4 py-2 text-sm font-medium transition-colors duration-300',
+                    'relative px-1 py-2 text-sm font-medium transition-colors duration-300',
                     active === l.href
                       ? 'text-primary'
-                      : 'text-foreground/65 hover:text-foreground',
+                      : 'text-foreground/60 hover:text-foreground',
                   )}
                 >
                   {l.label}
                   {active === l.href && (
-                    <span className="bg-primary absolute inset-x-4 -bottom-px h-px" />
+                    <span className="bg-primary absolute inset-x-0 -bottom-px h-px" />
                   )}
                 </button>
               </li>
@@ -115,24 +115,24 @@ export function SiteNav() {
       {/* Menú móvil a pantalla completa */}
       <div
         className={cn(
-          'bg-background/95 fixed inset-0 z-40 backdrop-blur-2xl transition-all duration-400 md:hidden',
+          'bg-background/98 fixed inset-0 z-40 backdrop-blur-xl transition-all duration-500 md:hidden',
           open
             ? 'pointer-events-auto opacity-100'
             : 'pointer-events-none opacity-0',
         )}
       >
-        <ul className="flex h-full flex-col items-center justify-center gap-2 px-8">
+        <ul className="flex h-full flex-col items-center justify-center gap-6 px-8">
           {links.map((l, i) => (
             <li key={l.href} className="w-full max-w-xs">
               <button
                 type="button"
                 onClick={() => go(l.href)}
-                style={{ transitionDelay: open ? `${i * 60 + 80}ms` : '0ms' }}
+                style={{ transitionDelay: open ? `${i * 70 + 100}ms` : '0ms' }}
                 className={cn(
-                  'border-border/50 hover:border-primary/50 hover:text-primary w-full border-b py-5 font-serif text-3xl font-medium transition-all duration-500 active:scale-[0.98]',
+                  'border-border/30 hover:border-primary/40 hover:text-primary w-full border-b py-6 font-serif text-4xl font-medium transition-all duration-500 active:scale-[0.98]',
                   open
                     ? 'translate-y-0 opacity-100'
-                    : 'translate-y-4 opacity-0',
+                    : 'translate-y-6 opacity-0',
                 )}
               >
                 {l.label}

@@ -102,7 +102,7 @@ export function EventsSection() {
           Próximos eventos
         </h2>
 
-        <div className="mt-10 grid gap-5 sm:mt-14 sm:grid-cols-2 sm:gap-6">
+        <div className="mt-8 grid gap-4 sm:mt-12 sm:grid-cols-2 sm:gap-5">
           {events.map((event, i) => (
             <Reveal
               key={event.id}
