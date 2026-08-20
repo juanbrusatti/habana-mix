@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { CalendarDays, Clock, MapPin, Ticket } from 'lucide-react'
+import { CalendarDays, MapPin, Ticket } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { getCardTheme } from '@/lib/card-theme'
 import type { AcademyEvent } from '@/lib/types'
@@ -22,6 +22,49 @@ function formatTime(iso: string) {
     hour: '2-digit',
     minute: '2-digit',
   }).format(new Date(iso))
+}
+
+function formatDateTimeRange(startsAt: string, endsAt: string | null) {
+  const startDate = new Date(startsAt)
+  const endDate = endsAt ? new Date(endsAt) : null
+
+  // Formato de fecha
+  const dateStr = new Intl.DateTimeFormat('es-ES', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+  }).format(startDate)
+
+  // Formato de hora inicio
+  const startTimeStr = new Intl.DateTimeFormat('es-ES', {
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(startDate)
+
+  // Si hay hora de fin, mostrar rango
+  if (endDate) {
+    const endTimeStr = new Intl.DateTimeFormat('es-ES', {
+      hour: '2-digit',
+      minute: '2-digit',
+    }).format(endDate)
+
+    // Si es el mismo día
+    if (startDate.toDateString() === endDate.toDateString()) {
+      return `${dateStr} · ${startTimeStr} - ${endTimeStr}`
+    }
+
+    // Si son días diferentes
+    const endDateStr = new Intl.DateTimeFormat('es-ES', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+    }).format(endDate)
+
+    return `${dateStr} ${startTimeStr} - ${endDateStr} ${endTimeStr}`
+  }
+
+  // Si no hay hora de fin, solo mostrar inicio
+  return `${dateStr} · ${startTimeStr}`
 }
 
 function daysUntil(iso: string) {
@@ -176,17 +219,8 @@ export function EventCard({ event }: { event: AcademyEvent }) {
               className={cn('h-4 w-4 shrink-0', t.accentText)}
               style={accentStyle}
             />
-            <dd className="text-foreground/85 capitalize">
-              {formatDate(event.starts_at)}
-            </dd>
-          </div>
-          <div className="flex items-center gap-2.5">
-            <Clock
-              className={cn('h-4 w-4 shrink-0', t.accentText)}
-              style={accentStyle}
-            />
             <dd className="text-foreground/85">
-              {formatTime(event.starts_at)} hs
+              {formatDateTimeRange(event.starts_at, event.ends_at)}
             </dd>
           </div>
           {event.location && (

@@ -9,6 +9,43 @@ import { Textarea } from '@/components/ui/textarea'
 import { toast } from 'sonner'
 import { Loader2, Plus, Trash2, Edit2, Calendar, Clock, MapPin, Upload, X } from 'lucide-react'
 
+function formatEventDateTime(startsAt: string, endsAt: string | null) {
+  const startDate = new Date(startsAt)
+  const endDate = endsAt ? new Date(endsAt) : null
+
+  const dateStr = startDate.toLocaleDateString('es-AR', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  })
+
+  const startTimeStr = startDate.toLocaleTimeString('es-AR', {
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+
+  if (endDate) {
+    const endTimeStr = endDate.toLocaleTimeString('es-AR', {
+      hour: '2-digit',
+      minute: '2-digit',
+    })
+
+    if (startDate.toDateString() === endDate.toDateString()) {
+      return `${dateStr} · ${startTimeStr} - ${endTimeStr}`
+    }
+
+    const endDateStr = endDate.toLocaleDateString('es-AR', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    })
+
+    return `${dateStr} ${startTimeStr} - ${endDateStr} ${endTimeStr}`
+  }
+
+  return `${dateStr} · ${startTimeStr}`
+}
+
 interface Event {
   id: string
   slug: string
@@ -583,13 +620,7 @@ export function EventsEditor() {
                   <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
                     <div className="flex items-center gap-1">
                       <Calendar className="w-4 h-4" />
-                      {new Date(event.starts_at).toLocaleDateString('es-AR', {
-                        day: 'numeric',
-                        month: 'short',
-                        year: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      })}
+                      {formatEventDateTime(event.starts_at, event.ends_at)}
                     </div>
                     {event.location && (
                       <div className="flex items-center gap-1">
