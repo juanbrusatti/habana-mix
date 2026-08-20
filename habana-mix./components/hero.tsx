@@ -197,12 +197,12 @@ export function Hero() {
               size="lg"
               onClick={() =>
                 document
-                  .getElementById('clases')
+                  .getElementById('eventos')
                   ?.scrollIntoView({ behavior: 'smooth' })
               }
               className="bg-primary text-primary-foreground hover:bg-primary/90 h-13 rounded-full text-[15px] font-semibold shadow-[0_18px_45px_-18px_oklch(0.79_0.152_68/0.7)] transition-all duration-300 active:scale-[0.97] sm:px-9"
             >
-              Ver clases
+              Ver eventos
             </Button>
             <Button
               size="lg"

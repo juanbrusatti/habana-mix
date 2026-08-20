@@ -1,7 +1,6 @@
 import type {
   AboutContent,
   AcademyEvent,
-  DanceClass,
   LocationContent,
 } from './types'
 
@@ -100,113 +99,6 @@ const events: AcademyEvent[] = [
   },
 ]
 
-const classes: DanceClass[] = [
-  {
-    id: 'cls-1',
-    slug: 'salsa-cubana-principiantes',
-    title: 'Salsa Cubana',
-    style: 'Salsa cubana / Casino',
-    level: 'principiante',
-    description:
-      'Desde cero: paso básico, dile que no, vacílala y tu primera rueda. En un mes ya bailás en cualquier fiesta.',
-    image_url: '/images/class-salsa.png',
-    instructor: 'Yoandri & Camila',
-    schedule: ['Lunes 19:00', 'Jueves 20:30'],
-    duration_min: 60,
-    price_amount: 45,
-    price_currency: 'USD',
-    price_period: 'mes',
-    capacity: 24,
-    spots_left: 7,
-    theme: 'amber',
-    layout: 'split',
-    tags: ['Sin pareja necesaria', 'Desde cero'],
-    featured: true,
-    overlay_opacity: 55,
-    accent_color: null,
-    status: 'published',
-    sort_order: 1,
-  },
-  {
-    id: 'cls-2',
-    slug: 'bachata-sensual-intermedio',
-    title: 'Bachata Sensual',
-    style: 'Bachata',
-    level: 'intermedio',
-    description:
-      'Musicalidad, ondas corporales y conexión en pareja. Para quienes ya dominan el básico y quieren fluir.',
-    image_url: '/images/class-bachata.png',
-    instructor: 'Dayana Pérez',
-    schedule: ['Martes 20:00', 'Sábado 12:00'],
-    duration_min: 75,
-    price_amount: 50,
-    price_currency: 'USD',
-    price_period: 'mes',
-    capacity: 20,
-    spots_left: 4,
-    theme: 'coral',
-    layout: 'split',
-    tags: ['Musicalidad', 'Trabajo en pareja'],
-    featured: false,
-    overlay_opacity: 55,
-    accent_color: null,
-    status: 'published',
-    sort_order: 2,
-  },
-  {
-    id: 'cls-3',
-    slug: 'timba-ladies-style',
-    title: 'Timba & Ladies Style',
-    style: 'Timba',
-    level: 'todos',
-    description:
-      'Sabor, actitud y despelote cubano. Técnica de cuerpo, giros y presencia en la pista.',
-    image_url: '/images/event-noche-cubana.png',
-    instructor: 'Camila Rojas',
-    schedule: ['Miércoles 19:30'],
-    duration_min: 60,
-    price_amount: 35,
-    price_currency: 'USD',
-    price_period: 'mes',
-    capacity: 18,
-    spots_left: 9,
-    theme: 'teal',
-    layout: 'split',
-    tags: ['Ladies style', 'Técnica corporal'],
-    featured: false,
-    overlay_opacity: 55,
-    accent_color: null,
-    status: 'published',
-    sort_order: 3,
-  },
-  {
-    id: 'cls-4',
-    slug: 'rueda-de-casino-avanzado',
-    title: 'Rueda de Casino',
-    style: 'Rueda de Casino',
-    level: 'avanzado',
-    description:
-      'Más de 40 figuras cantadas, cambios rápidos y coreografía grupal. El sello de Habana Mix.',
-    image_url: '/images/event-workshop.png',
-    instructor: 'Yoandri Suárez',
-    schedule: ['Viernes 20:00'],
-    duration_min: 90,
-    price_amount: 40,
-    price_currency: 'USD',
-    price_period: 'mes',
-    capacity: 30,
-    spots_left: 12,
-    theme: 'noche',
-    layout: 'split',
-    tags: ['Grupal', 'Nivel alto'],
-    featured: false,
-    overlay_opacity: 55,
-    accent_color: null,
-    status: 'published',
-    sort_order: 4,
-  },
-]
-
 const about: AboutContent = {
   eyebrow: 'Quiénes somos',
   title: 'Un pedacito de Cuba en tu ciudad',
@@ -245,10 +137,6 @@ const location: LocationContent = {
 
 export async function getEvents(): Promise<AcademyEvent[]> {
   return events
-}
-
-export async function getClasses(): Promise<DanceClass[]> {
-  return classes
 }
 
 export async function getAboutContent(): Promise<AboutContent> {

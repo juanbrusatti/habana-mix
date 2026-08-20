@@ -51,18 +51,8 @@ const defaultConfig: FooterConfig = {
       title: 'La academia',
       links: [
         { label: 'Próximos eventos', href: '#eventos' },
-        { label: 'Nuestras clases', href: '#clases' },
         { label: 'Quiénes somos', href: '#nosotros' },
         { label: 'Cómo llegar', href: '#como-llegar' }
-      ]
-    },
-    {
-      title: 'Estilos',
-      links: [
-        { label: 'Salsa cubana', href: '#clases' },
-        { label: 'Bachata', href: '#clases' },
-        { label: 'Timba', href: '#clases' },
-        { label: 'Rueda de casino', href: '#clases' }
       ]
     }
   ],

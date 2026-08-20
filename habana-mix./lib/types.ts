@@ -42,55 +42,7 @@ export interface AcademyEvent {
   sort_order: number
 }
 
-export type ClassLevel = 'principiante' | 'intermedio' | 'avanzado' | 'todos'
 
-export interface DanceClass {
-  id: string
-  slug: string
-  title: string
-  style: string
-  level: ClassLevel
-  description: string | null
-  image_url: string | null
-  instructor: string | null
-  /** Horarios legibles: ["Lunes 19:00", "Jueves 20:30"] */
-  schedule: string[]
-  duration_min: number | null
-  price_amount: number
-  price_currency: string
-  price_period: string | null
-  capacity: number | null
-  spots_left: number | null
-  theme: CardTheme
-  layout: CardLayout
-  tags: string[]
-  featured: boolean
-  overlay_opacity: number
-  accent_color: string | null
-  status: EventStatus
-  sort_order: number
-}
-
-export type EnrollmentStatus = 'pending' | 'approved' | 'rejected'
-
-export interface Enrollment {
-  id: string
-  user_id: string | null
-  class_id: string
-  full_name: string
-  email: string
-  phone: string | null
-  receipt_url: string | null
-  payment_method: string | null
-  payment_reference: string | null
-  notes: string | null
-  status: EnrollmentStatus
-  /** Código único que el alumno presenta en la academia (se genera al aprobar) */
-  access_code: string | null
-  reviewed_at: string | null
-  admin_note: string | null
-  created_at: string
-}
 
 export interface Attendance {
   id: string
