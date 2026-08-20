@@ -192,7 +192,7 @@ export function Hero() {
             {config.subtitle}
           </p>
 
-          <div className="mt-8 flex w-full max-w-sm flex-col gap-3 sm:max-w-none sm:flex-row sm:justify-center">
+          <div className="mt-8 flex w-full justify-center">
             <Button
               size="lg"
               onClick={() =>
@@ -204,18 +204,6 @@ export function Hero() {
             >
               Ver eventos
             </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              onClick={() =>
-                document
-                  .getElementById('eventos')
-                  ?.scrollIntoView({ behavior: 'smooth' })
-              }
-              className="border-foreground/20 bg-foreground/5 text-foreground hover:bg-foreground/10 h-13 rounded-full text-[15px] font-semibold backdrop-blur-md transition-all duration-300 active:scale-[0.97] sm:px-9"
-            >
-              Próximos eventos
-            </Button>
           </div>
         </div>
       </div>
@@ -225,7 +213,7 @@ export function Hero() {
         type="button"
         onClick={scrollToNext}
         aria-label="Bajar a la sección de eventos"
-        className="text-foreground/50 hover:text-foreground focus-visible:ring-ring absolute bottom-5 left-1/2 z-20 flex -translate-x-1/2 flex-col items-center gap-1.5 rounded-full p-2 transition-colors focus-visible:ring-2 focus-visible:outline-none"
+        className="text-foreground/50 hover:text-foreground focus-visible:ring-ring absolute bottom-1 left-1/2 z-20 flex -translate-x-1/2 flex-col items-center gap-1.5 rounded-full p-2 transition-colors focus-visible:ring-2 focus-visible:outline-none sm:bottom-5"
         style={{ opacity: 1 - progress * 2 }}
       >
         <span className="text-[10px] font-medium tracking-[0.3em] uppercase">
