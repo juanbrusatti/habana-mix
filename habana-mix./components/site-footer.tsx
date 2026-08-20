@@ -40,7 +40,6 @@ interface LocationConfig {
   city: string
   state: string
   country: string
-  phone: string
 }
 
 const defaultConfig: FooterConfig = {
@@ -80,8 +79,7 @@ const defaultLocation: LocationConfig = {
   apartment: 'Local 3',
   city: 'Palermo',
   state: 'Buenos Aires',
-  country: 'Argentina',
-  phone: '+54 11 5555 1234'
+  country: 'Argentina'
 }
 
 const socialIcons: Record<string, any> = {
@@ -202,14 +200,6 @@ export function SiteFooter() {
             <ul className="text-muted-foreground mt-4 flex flex-col gap-2.5 text-sm">
               <li>{formatAddress()}</li>
               <li>{formatCity()}</li>
-              <li>
-                <a
-                  href={`tel:${location.phone.replace(/\s/g, '')}`}
-                  className="hover:text-foreground transition-colors"
-                >
-                  {location.phone}
-                </a>
-              </li>
               <li>
                 <a
                   href={`mailto:${config.email}`}

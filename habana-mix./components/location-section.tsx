@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { ExternalLink, MapPin, Phone } from 'lucide-react'
+import { ExternalLink, MapPin } from 'lucide-react'
 import { WhatsAppIcon } from '@/components/brand-icons'
 import { Reveal } from '@/components/reveal'
 import { SectionHeading } from '@/components/section-heading'
@@ -196,13 +196,6 @@ export function LocationSection() {
               >
                 <WhatsAppIcon className="h-4 w-4" />
                 Escribinos por WhatsApp
-              </a>
-              <a
-                href={`tel:${config.phone.replace(/\s/g, '')}`}
-                className="border-border bg-background hover:bg-muted focus-visible:ring-ring/50 inline-flex h-12 w-full items-center justify-center gap-2 rounded-full border text-[15px] font-semibold transition-transform outline-none focus-visible:ring-3 active:scale-[0.97]"
-              >
-                <Phone className="h-4 w-4" />
-                {config.phone}
               </a>
             </div>
           </Reveal>
