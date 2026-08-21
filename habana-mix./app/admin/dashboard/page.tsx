@@ -9,6 +9,7 @@ import { AboutEditor } from '@/components/admin/about-editor'
 import { FooterEditor } from '@/components/admin/footer-editor'
 import { EventsEditor } from '@/components/admin/events-editor'
 import { AttendanceAdmin } from '@/components/admin/attendance-admin'
+import { RaffleAdmin } from '@/components/admin/raffle-admin'
 import { toast } from 'sonner'
 import { Lock, Unlock } from 'lucide-react'
 
@@ -117,6 +118,10 @@ export default function AdminDashboard() {
               <Unlock className="w-4 h-4" />
               Asistencia
             </TabsTrigger>
+            <TabsTrigger value="sorteo" className="flex items-center gap-2">
+              <Unlock className="w-4 h-4" />
+              Sorteo
+            </TabsTrigger>
             <TabsTrigger value="general" className="flex items-center gap-2">
               <Unlock className="w-4 h-4" />
               Edición General
@@ -141,6 +146,10 @@ export default function AdminDashboard() {
 
           <TabsContent value="asistencia" className="space-y-4">
             <AttendanceAdmin />
+          </TabsContent>
+
+          <TabsContent value="sorteo" className="space-y-4">
+            <RaffleAdmin />
           </TabsContent>
 
           <TabsContent value="general" className="space-y-6">

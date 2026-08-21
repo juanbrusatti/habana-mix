@@ -220,3 +220,15 @@ RESEND_FROM_EMAIL="Habana Mix <entradas@tu-dominio.com>"
 `RESEND_FROM_EMAIL` debe usar un dominio verificado en Resend. Si Resend no está configurado, el pago y el ticket funcionan igual, pero el enlace solo estará disponible en la pantalla de éxito.
 
 Para producción, configura la URL pública HTTPS como `NEXT_PUBLIC_SITE_URL` y usa credenciales de producción. Para pruebas, usa credenciales de prueba y una URL pública de túnel para que el webhook sea accesible.
+
+## Sorteos por evento
+
+La pestaña `Sorteo` del admin permite seleccionar un evento publicado, configurar premio y cantidad de ganadores, tomar una lista fija de participantes válidos y abrir una pantalla pública en `/sorteo/[id]`. Los pagos aprobados y las inscripciones gratuitas participan; pagos pendientes o rechazados quedan fuera.
+
+Ejecutá también la migración:
+
+```sql
+migrate/027_raffles.sql
+```
+
+El sorteo se ejecuta una sola vez por sesión, guarda sus ganadores y puede proyectarse en pantalla completa.
