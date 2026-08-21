@@ -65,6 +65,7 @@ const defaultConfig: FooterConfig = {
 
 export function FooterEditor() {
   const [config, setConfig] = useState<FooterConfig>(defaultConfig)
+  const [socialIds, setSocialIds] = useState(() => defaultConfig.socials.map(() => crypto.randomUUID()))
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
 
@@ -77,7 +78,9 @@ export function FooterEditor() {
       const { data, error } = await supabase.rpc('get_footer_config')
       if (error) throw error
       if (data) {
-        setConfig(data as FooterConfig)
+        const next = data as FooterConfig
+        setConfig(next)
+        setSocialIds(next.socials.map(() => crypto.randomUUID()))
       }
     } catch (error) {
       console.error('Error cargando configuración:', error)
@@ -125,6 +128,7 @@ export function FooterEditor() {
 
   const handleReset = () => {
     setConfig(defaultConfig)
+    setSocialIds(defaultConfig.socials.map(() => crypto.randomUUID()))
     toast.info('Configuración restablecida a valores por defecto')
   }
 
@@ -171,6 +175,7 @@ export function FooterEditor() {
       ...config,
       socials: [...config.socials, { label: '', href: '' }]
     })
+    setSocialIds((ids) => [...ids, crypto.randomUUID()])
   }
 
   const removeSocial = (index: number) => {
@@ -178,6 +183,7 @@ export function FooterEditor() {
       ...config,
       socials: config.socials.filter((_, i) => i !== index)
     })
+    setSocialIds((ids) => ids.filter((_, i) => i !== index))
   }
 
   const updateSocial = (index: number, field: keyof Social, value: string) => {
@@ -264,7 +270,7 @@ export function FooterEditor() {
           
           <div className="grid gap-4 md:grid-cols-2">
             {config.socials.map((social, index) => (
-              <div key={index} className="flex gap-2 items-start">
+              <div key={socialIds[index]} className="flex gap-2 items-start">
                 <div className="flex-1 space-y-2">
                   <Input
                     value={social.label}

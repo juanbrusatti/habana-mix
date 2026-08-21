@@ -173,9 +173,9 @@ export function LocationSection() {
                 Horarios
               </p>
               <dl className="grid gap-2.5">
-                {config.hours.map((h, index) => (
+                {config.hours.map((h) => (
                   <div
-                    key={index}
+                    key={h.label}
                     className="flex items-baseline justify-between gap-4 text-sm"
                   >
                     <dt className="text-muted-foreground">{h.label}</dt>

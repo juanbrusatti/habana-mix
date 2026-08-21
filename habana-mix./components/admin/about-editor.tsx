@@ -25,6 +25,8 @@ interface AboutConfig {
   badge_sub_text: string
 }
 
+const createRowId = () => crypto.randomUUID()
+
 const defaultConfig: AboutConfig = {
   eyebrow: 'Quiénes somos',
   title: 'Un pedacito de Cuba en tu ciudad',
@@ -47,6 +49,8 @@ const defaultConfig: AboutConfig = {
 
 export function AboutEditor() {
   const [config, setConfig] = useState<AboutConfig>(defaultConfig)
+  const [paragraphIds, setParagraphIds] = useState(() => defaultConfig.paragraphs.map(() => createRowId()))
+  const [statIds, setStatIds] = useState(() => defaultConfig.stats.map(() => createRowId()))
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
@@ -61,7 +65,10 @@ export function AboutEditor() {
       const { data, error } = await supabase.rpc('get_about_config')
       if (error) throw error
       if (data) {
-        setConfig(data as AboutConfig)
+        const next = data as AboutConfig
+        setConfig(next)
+        setParagraphIds(next.paragraphs.map(() => createRowId()))
+        setStatIds(next.stats.map(() => createRowId()))
       }
     } catch (error) {
       console.error('Error cargando configuración:', error)
@@ -163,6 +170,8 @@ export function AboutEditor() {
 
   const handleReset = () => {
     setConfig(defaultConfig)
+    setParagraphIds(defaultConfig.paragraphs.map(() => createRowId()))
+    setStatIds(defaultConfig.stats.map(() => createRowId()))
     toast.info('Configuración restablecida a valores por defecto')
   }
 
@@ -171,6 +180,7 @@ export function AboutEditor() {
       ...config,
       paragraphs: [...config.paragraphs, '']
     })
+    setParagraphIds((ids) => [...ids, createRowId()])
   }
 
   const removeParagraph = (index: number) => {
@@ -178,6 +188,7 @@ export function AboutEditor() {
       ...config,
       paragraphs: config.paragraphs.filter((_, i) => i !== index)
     })
+    setParagraphIds((ids) => ids.filter((_, i) => i !== index))
   }
 
   const updateParagraph = (index: number, value: string) => {
@@ -191,6 +202,7 @@ export function AboutEditor() {
       ...config,
       stats: [...config.stats, { value: '', label: '' }]
     })
+    setStatIds((ids) => [...ids, createRowId()])
   }
 
   const removeStat = (index: number) => {
@@ -198,6 +210,7 @@ export function AboutEditor() {
       ...config,
       stats: config.stats.filter((_, i) => i !== index)
     })
+    setStatIds((ids) => ids.filter((_, i) => i !== index))
   }
 
   const updateStat = (index: number, field: keyof StatEntry, value: string) => {
@@ -379,7 +392,7 @@ export function AboutEditor() {
           
           <div className="space-y-3">
             {config.paragraphs.map((paragraph, index) => (
-              <div key={index} className="flex gap-2 items-start">
+              <div key={paragraphIds[index]} className="flex gap-2 items-start">
                 <div className="flex-1 space-y-2">
                   <Textarea
                     value={paragraph}
@@ -413,7 +426,7 @@ export function AboutEditor() {
           
           <div className="grid gap-4 md:grid-cols-2">
             {config.stats.map((stat, index) => (
-              <div key={index} className="flex gap-2 items-start">
+              <div key={statIds[index]} className="flex gap-2 items-start">
                 <div className="flex-1 space-y-2">
                   <Input
                     value={stat.value}

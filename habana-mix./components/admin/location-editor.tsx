@@ -50,6 +50,7 @@ const defaultConfig: LocationConfig = {
 
 export function LocationEditor() {
   const [config, setConfig] = useState<LocationConfig>(defaultConfig)
+  const [hourIds, setHourIds] = useState(() => defaultConfig.hours.map(() => crypto.randomUUID()))
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
 
@@ -62,7 +63,9 @@ export function LocationEditor() {
       const { data, error } = await supabase.rpc('get_location_config')
       if (error) throw error
       if (data) {
-        setConfig(data as LocationConfig)
+        const next = data as LocationConfig
+        setConfig(next)
+        setHourIds(next.hours.map(() => crypto.randomUUID()))
       }
     } catch (error) {
       console.error('Error cargando configuración:', error)
@@ -117,6 +120,7 @@ export function LocationEditor() {
 
   const handleReset = () => {
     setConfig(defaultConfig)
+    setHourIds(defaultConfig.hours.map(() => crypto.randomUUID()))
     toast.info('Configuración restablecida a valores por defecto')
   }
 
@@ -125,6 +129,7 @@ export function LocationEditor() {
       ...config,
       hours: [...config.hours, { label: '', value: '' }]
     })
+    setHourIds((ids) => [...ids, crypto.randomUUID()])
   }
 
   const removeHour = (index: number) => {
@@ -132,6 +137,7 @@ export function LocationEditor() {
       ...config,
       hours: config.hours.filter((_, i) => i !== index)
     })
+    setHourIds((ids) => ids.filter((_, i) => i !== index))
   }
 
   const updateHour = (index: number, field: keyof HourEntry, value: string) => {
@@ -330,7 +336,7 @@ export function LocationEditor() {
           
           <div className="space-y-3">
             {config.hours.map((hour, index) => (
-              <div key={index} className="flex gap-2 items-start">
+              <div key={hourIds[index]} className="flex gap-2 items-start">
                 <div className="flex-1 space-y-2">
                   <Input
                     value={hour.label}

@@ -131,7 +131,7 @@ export function AboutSection() {
 
             <div className="mt-5 flex flex-col gap-4">
               {config.paragraphs.map((p, i) => (
-                <Reveal key={i} delay={i * 90}>
+                <Reveal key={p} delay={i * 90}>
                   <p className="text-muted-foreground text-[15px] leading-relaxed text-pretty sm:text-base">
                     {p}
                   </p>
