@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import QRCode from 'qrcode'
 import { Button } from '@/components/ui/button'
+import { MessageCircle } from 'lucide-react'
 
 interface TicketData {
   eventTitle: string
@@ -60,6 +61,15 @@ export function TicketView({ token }: { token: string }) {
       </div>
       <p className="text-sm text-muted-foreground">Tu QR se genera al descargar la entrada. Presentá cualquiera de los dos en el ingreso.</p>
       <Button onClick={downloadTicket} className="w-full">Descargar entrada con QR y código</Button>
+      <a
+        href="https://wa.me/5493584178955?text=Hola,%20tengo%20problemas%20con%20mi%20entrada%20para%20${encodeURIComponent(ticket.eventTitle)}.%20¿Podrían%20ayudarme?"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="inline-flex items-center justify-center gap-2 w-full rounded-full border border-green-600 px-4 py-2 text-sm font-semibold text-green-600 transition-colors hover:bg-green-50"
+      >
+        <MessageCircle className="h-4 w-4" />
+        ¿No te llegó tu código QR? Contactanos
+      </a>
     </div>
   )
 }
