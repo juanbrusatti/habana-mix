@@ -175,6 +175,7 @@ Agrega estas variables en `.env.local` y en el proveedor de deploy:
 
 ```env
 MERCADOPAGO_ACCESS_TOKEN=tu_access_token_de_mercado_pago
+MERCADOPAGO_SECONDARY_ACCESS_TOKEN=tu_segundo_access_token_de_mercado_pago  # Opcional, para split payments
 NEXT_PUBLIC_SITE_URL=https://tu-dominio.com
 SUPABASE_SERVICE_ROLE_KEY=tu_service_role_key
 ```
@@ -243,3 +244,46 @@ migrate/027_raffles.sql
 ```
 
 El sorteo se ejecuta una sola vez por sesión, guarda sus ganadores y puede proyectarse en pantalla completa.
+
+## Split Payments (Pagos Divididos)
+
+El sistema soporta división de pagos entre dos cuentas de MercadoPago de forma transparente para el usuario. Cuando un cliente paga una entrada, el sistema puede enviar automáticamente una parte del monto a una segunda cuenta de MercadoPago.
+
+### Configuración
+
+1. **Ejecutar las migraciones necesarias en Supabase:**
+   - `migrate/028_add_split_payment_to_events.sql` - Agrega campos de configuración de split a la tabla events
+   - `migrate/029_add_split_to_payment_orders.sql` - Agrega campos de seguimiento de split a payment_orders
+
+2. **Configurar la segunda cuenta de MercadoPago:**
+   - Agrega la variable de entorno `MERCADOPAGO_SECONDARY_ACCESS_TOKEN` en `.env.local` y en Vercel
+   - Este token debe corresponder a la segunda cuenta de MercadoPago que recibirá la parte del pago
+
+3. **Configurar el split en el evento:**
+   - En el panel de administración, edita un evento de pago
+   - Habilita la opción "Habilitar split payment"
+   - Configura el monto fijo o el porcentaje que irá a la segunda cuenta
+   - Agrega una descripción interna para referencia del administrador
+
+### Funcionamiento
+
+1. El usuario paga el monto total de la entrada a través de MercadoPago
+2. Una vez aprobado el pago, el sistema crea automáticamente un segundo pago a la segunda cuenta
+3. El segundo pago usa el `MERCADOPAGO_SECONDARY_ACCESS_TOKEN` para transferir el monto configurado
+4. Todo el proceso es transparente para el usuario, que solo ve un pago
+5. El sistema registra ambos pagos en la tabla `payment_orders` para auditoría
+
+### Variables de Entorno
+
+```env
+MERCADOPAGO_ACCESS_TOKEN=tu_access_token_principal
+MERCADOPAGO_SECONDARY_ACCESS_TOKEN=tu_access_token_secundario  # Opcional
+```
+
+### Consideraciones
+
+- Si el split payment falla, el pago principal del usuario no se afecta
+- Los errores del split payment se registran en `payment_orders.split_payment_error`
+- El sistema puede configurarse con monto fijo o porcentaje del total
+- Solo eventos de pago pueden tener split habilitado
+- La segunda cuenta debe tener fondos suficientes para recibir transferencias

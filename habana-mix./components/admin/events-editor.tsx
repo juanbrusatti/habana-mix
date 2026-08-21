@@ -66,6 +66,10 @@ interface Event {
   tags: string[]
   overlay_opacity: number
   accent_color: string | null
+  split_enabled: boolean
+  split_amount: number | null
+  split_percentage: number | null
+  split_description: string | null
   created_at: string
 }
 
@@ -88,6 +92,10 @@ interface EventFormData {
   tags: string
   overlay_opacity: number
   accent_color: string
+  split_enabled: boolean
+  split_amount: string
+  split_percentage: string
+  split_description: string
 }
 
 const emptyEvent: EventFormData = {
@@ -109,6 +117,10 @@ const emptyEvent: EventFormData = {
   tags: '',
   overlay_opacity: 60,
   accent_color: '',
+  split_enabled: false,
+  split_amount: '',
+  split_percentage: '',
+  split_description: '',
 }
 
 export function EventsEditor() {
@@ -168,6 +180,10 @@ export function EventsEditor() {
       tags: Array.isArray(event.tags) ? event.tags.join(', ') : '',
       overlay_opacity: event.overlay_opacity,
       accent_color: event.accent_color || '',
+      split_enabled: event.split_enabled || false,
+      split_amount: event.split_amount?.toString() || '',
+      split_percentage: event.split_percentage?.toString() || '',
+      split_description: event.split_description || '',
     })
     setShowForm(true)
   }
@@ -269,6 +285,10 @@ export function EventsEditor() {
         tags: formData.tags.split(',').map((t) => t.trim()).filter(Boolean),
         overlay_opacity: formData.overlay_opacity,
         accent_color: formData.accent_color || null,
+        split_enabled: formData.split_enabled,
+        split_amount: formData.split_enabled && formData.split_amount ? Number(formData.split_amount) : null,
+        split_percentage: formData.split_enabled && formData.split_percentage ? Number(formData.split_percentage) : null,
+        split_description: formData.split_enabled ? formData.split_description || null : null,
       }
 
       if (editingEvent) {
@@ -493,6 +513,71 @@ export function EventsEditor() {
                     placeholder="Entrada $20.000"
                   />
                 </div>
+              </div>
+            )}
+
+            {!formData.is_free && (
+              <div className="space-y-4 md:col-span-2 border-t pt-4">
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="split_enabled"
+                    checked={formData.split_enabled}
+                    onChange={(e) => setFormData({ ...formData, split_enabled: e.target.checked })}
+                    className="w-4 h-4"
+                  />
+                  <Label htmlFor="split_enabled" className="cursor-pointer">
+                    Habilitar split payment (dividir pago entre dos cuentas MercadoPago)
+                  </Label>
+                </div>
+
+                {formData.split_enabled && (
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label htmlFor="split_amount">Monto fijo para segunda cuenta (ARS)</Label>
+                      <Input
+                        id="split_amount"
+                        type="number"
+                        min="0.01"
+                        step="0.01"
+                        value={formData.split_amount}
+                        onChange={(e) => setFormData({ ...formData, split_amount: e.target.value, split_percentage: '' })}
+                        placeholder="5000"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Dejar vacío si prefieres usar porcentaje
+                      </p>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="split_percentage">Porcentaje del total (%)</Label>
+                      <Input
+                        id="split_percentage"
+                        type="number"
+                        min="0.01"
+                        max="100"
+                        step="0.01"
+                        value={formData.split_percentage}
+                        onChange={(e) => setFormData({ ...formData, split_percentage: e.target.value, split_amount: '' })}
+                        placeholder="25"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Dejar vacío si prefieres usar monto fijo
+                      </p>
+                    </div>
+                    <div className="space-y-2 sm:col-span-2">
+                      <Label htmlFor="split_description">Descripción del split (interna)</Label>
+                      <Input
+                        id="split_description"
+                        value={formData.split_description}
+                        onChange={(e) => setFormData({ ...formData, split_description: e.target.value })}
+                        placeholder="Porcentaje para instructor/organizador"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Solo visible para administradores
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 

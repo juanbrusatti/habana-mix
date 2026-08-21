@@ -33,6 +33,11 @@ export interface AcademyEvent {
   overlay_opacity: number
   /** Sobrescribe el color del tema si el admin quiere algo puntual */
   accent_color: string | null
+  /* --- Split Payment --- */
+  split_enabled: boolean
+  split_amount: number | null
+  split_percentage: number | null
+  split_description: string | null
   created_at?: string
 }
 

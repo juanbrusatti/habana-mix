@@ -38,7 +38,7 @@ export async function POST(req: Request) {
 
     const { data: event, error: eventError } = await supabaseAdmin
       .from('events')
-      .select('id, title, is_free, price_amount, price_currency')
+      .select('id, title, is_free, price_amount, price_currency, split_enabled, split_amount, split_percentage, split_description')
       .eq('id', payload.event_id)
       .maybeSingle()
 
@@ -71,6 +71,16 @@ export async function POST(req: Request) {
     const amount = Number(event.price_amount)
     const currency = event.price_currency || 'ARS'
 
+    // Calcular split payment si está habilitado
+    let splitAmount: number | null = null
+    if (event.split_enabled) {
+      if (event.split_amount) {
+        splitAmount = Number(event.split_amount)
+      } else if (event.split_percentage) {
+        splitAmount = (amount * Number(event.split_percentage)) / 100
+      }
+    }
+
     const { data: order, error: orderError } = await supabaseAdmin
       .from('payment_orders')
       .insert({
@@ -79,6 +89,9 @@ export async function POST(req: Request) {
         amount,
         currency,
         status: 'pending',
+        split_enabled: event.split_enabled,
+        split_amount: splitAmount,
+        split_description: event.split_description,
       })
       .select('id')
       .single()

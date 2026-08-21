@@ -108,6 +108,63 @@ export async function POST(req: Request) {
 
     if (updateError) throw updateError
 
+    // Ejecutar split payment si está habilitado
+    let splitPaymentId: string | null = null
+    let splitPaymentError: string | null = null
+    
+    if (order.split_enabled && order.split_amount && order.split_amount > 0) {
+      const secondaryAccessToken = process.env.MERCADOPAGO_SECONDARY_ACCESS_TOKEN
+      
+      if (secondaryAccessToken) {
+        try {
+          const secondaryClient = new MercadoPagoConfig({ accessToken: secondaryAccessToken })
+          
+          // Crear pago directo a la segunda cuenta
+          const splitPayment = await new Payment(secondaryClient).create({
+            body: {
+              transaction_amount: order.split_amount,
+              description: `Split payment: ${order.split_description || order.event_title}`,
+              payment_method_id: 'account_money',
+              payer: {
+                email: 'split-payment@system.internal',
+              },
+            },
+          })
+          
+          splitPaymentId = String(splitPayment.id)
+          
+          // Registrar el split payment en la orden
+          await supabaseAdmin
+            .from('payment_orders')
+            .update({
+              split_payment_id: splitPaymentId,
+              split_payment_status: 'approved',
+              split_payment_executed_at: new Date().toISOString(),
+            })
+            .eq('id', order.id)
+            
+          console.log(`Split payment ejecutado exitosamente: ${splitPaymentId} - Monto: ${order.split_amount}`)
+        } catch (splitError) {
+          splitPaymentError = splitError instanceof Error ? splitError.message : 'Error desconocido'
+          
+          // Registrar el error del split payment
+          await supabaseAdmin
+            .from('payment_orders')
+            .update({
+              split_payment_status: 'failed',
+              split_payment_error: splitPaymentError,
+              split_payment_executed_at: new Date().toISOString(),
+            })
+            .eq('id', order.id)
+            
+          console.error(`Error ejecutando split payment: ${splitPaymentError}`)
+          // No fallamos el proceso principal, el usuario ya pagó correctamente
+        }
+      } else {
+        console.warn('Split payment habilitado pero no hay MERCADOPAGO_SECONDARY_ACCESS_TOKEN configurado')
+      }
+    }
+
     const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || '').replace(/\/+$/, '')
     const ticketUrl = `${siteUrl}/entrada/${ticketToken}`
     const emailSent = await sendTicketEmail({
