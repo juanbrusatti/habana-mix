@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { CalendarDays, MapPin, Ticket } from 'lucide-react'
+import { CalendarDays, MapPin, Ticket, MessageCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { getCardTheme } from '@/lib/card-theme'
 import type { AcademyEvent } from '@/lib/types'
@@ -288,6 +288,17 @@ export function EventCard({ event }: { event: AcademyEvent }) {
             ) : null}
           </>
         )}
+        
+        {/* Botón de contacto por WhatsApp para problemas con códigos QR */}
+        <a
+          href={`https://wa.me/5493584178955?text=Hola,%20tengo%20problemas%20con%20mi%20entrada%20para%20${encodeURIComponent(event.title)}.%20¿Podrían%20ayudarme?`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center justify-center gap-2 mt-2 text-xs text-green-600 hover:text-green-700 transition-colors"
+        >
+          <MessageCircle className="h-3 w-3" />
+          ¿No te llegó tu código QR? Contactanos
+        </a>
       </div>
     </article>
   )

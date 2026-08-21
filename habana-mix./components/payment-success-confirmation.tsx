@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import QRCode from 'qrcode'
+import { MessageCircle } from 'lucide-react'
 
 interface Ticket {
   token: string
@@ -48,9 +49,20 @@ export function PaymentSuccessConfirmation() {
 
   if (state === 'error') {
     return (
-      <p className="text-muted-foreground">
-        El pago fue recibido, pero todavía no pudimos confirmar la reserva. Contactanos con tu comprobante.
-      </p>
+      <div className="space-y-3">
+        <p className="text-muted-foreground">
+          El pago fue recibido, pero todavía no pudimos confirmar la reserva. Contactanos con tu comprobante.
+        </p>
+        <a
+          href="https://wa.me/5493584178955?text=Hola,%20realicé%20un%20pago%20pero%20no%20me%20llegó%20mi%20código%20QR.%20¿Podrían%20ayudarme?"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-2 rounded-full bg-green-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-green-700"
+        >
+          <MessageCircle className="h-4 w-4" />
+          Contactar por WhatsApp
+        </a>
+      </div>
     )
   }
 
@@ -65,6 +77,15 @@ export function PaymentSuccessConfirmation() {
       <p className="text-xs text-muted-foreground">
         {ticket.emailSent ? 'También enviamos el enlace a tu email.' : 'Guardá este enlace para volver a descargarla.'}
       </p>
+      <a
+        href="https://wa.me/5493584178955?text=Hola,%20realicé%20un%20pago%20pero%20no%20me%20llegó%20mi%20código%20QR.%20¿Podrían%20ayudarme?"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="inline-flex items-center gap-2 rounded-full border border-green-600 px-4 py-2 text-sm font-semibold text-green-600 transition-colors hover:bg-green-50"
+      >
+        <MessageCircle className="h-4 w-4" />
+        ¿No te llegó tu código QR? Contactanos
+      </a>
     </div>
   ) : null
 }
