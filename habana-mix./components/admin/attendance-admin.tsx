@@ -205,6 +205,21 @@ export function AttendanceAdmin() {
     toast.success('Entrada reenviada por email')
   }
 
+  const handleEventReminder = async (eventId: string, eventTitle: string) => {
+    if (!adminId) return
+    const confirmed = window.confirm(`¿Enviar recordatorio de ${eventTitle} a todos los compradores aprobados?`)
+    if (!confirmed) return
+
+    const response = await fetch('/api/admin/attendances/reminder', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-admin-id': adminId },
+      body: JSON.stringify({ event_id: eventId }),
+    })
+    const data = await response.json()
+    if (!response.ok) { toast.error(data.error || 'No se pudieron enviar los recordatorios'); return }
+    toast.success(`Recordatorios enviados: ${data.sent}. Fallidos: ${data.failed}.`)
+  }
+
   const createGift = async (event: React.FormEvent) => {
     event.preventDefault()
     setGiftLoading(true)
@@ -421,6 +436,13 @@ export function AttendanceAdmin() {
                     <div className="font-semibold">{title}</div>
                     <div className="flex items-center gap-2">
                       <div className="text-sm text-muted-foreground">{list.length} registros</div>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleEventReminder(list[0].event_id, title)}
+                      >
+                        Recordatorio
+                      </Button>
                       <Button
                         size="sm"
                         variant="outline"

@@ -210,14 +210,25 @@ Cuando un pago queda aprobado se genera un código único de cinco caracteres y 
 
 El personal puede usar `/control-acceso` e ingresar con el mismo usuario y contraseña del panel admin. Luego puede validar el código manualmente o escanear el QR desde un navegador móvil compatible. Una entrada aprobada solo puede marcarse como utilizada una vez.
 
-Para el envío de emails se usa Resend:
+Para el envío de emails se usa Gmail SMTP:
 
 ```env
-RESEND_API_KEY=tu_api_key_de_resend
-RESEND_FROM_EMAIL="Habana Mix <entradas@tu-dominio.com>"
+GMAIL_USER=habanamix2026@gmail.com
+GMAIL_APP_PASSWORD=xxxxxxxxxxxxxxxx
+GMAIL_FROM="Habana Mix <habanamix2026@gmail.com>"
 ```
 
-`RESEND_FROM_EMAIL` debe usar un dominio verificado en Resend. Si Resend no está configurado, el pago y el ticket funcionan igual, pero el enlace solo estará disponible en la pantalla de éxito.
+Usá una contraseña de aplicación de Google, no la contraseña normal de Gmail. Si Gmail no está configurado, el pago y el ticket funcionan igual, pero no se envía el correo.
+
+### Configuración de Google
+
+1. Ingresá a `myaccount.google.com` con `habanamix2026@gmail.com`.
+2. Activá la verificación en dos pasos en **Seguridad**.
+3. En **Contraseñas de aplicaciones**, creá una aplicación llamada `Habana Mix`.
+4. Copiá la contraseña de 16 caracteres en `GMAIL_APP_PASSWORD`.
+5. En Vercel agregá las tres variables en el entorno correspondiente y redeployá.
+
+No uses la contraseña habitual de Gmail ni compartas la contraseña de aplicación. El sistema envía la entrada individual y el recordatorio por evento con el QR adjunto y el código alfanumérico.
 
 Para producción, configura la URL pública HTTPS como `NEXT_PUBLIC_SITE_URL` y usa credenciales de producción. Para pruebas, usa credenciales de prueba y una URL pública de túnel para que el webhook sea accesible.
 
