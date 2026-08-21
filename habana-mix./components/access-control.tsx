@@ -87,22 +87,40 @@ export function AccessControl() {
     event.preventDefault()
     setLoginLoading(true)
     setLoginError('')
+
+    const normalizedUsername = username.trim()
+    if (!normalizedUsername || !password) {
+      setLoginError('Ingresá usuario y contraseña.')
+      setLoginLoading(false)
+      return
+    }
+
     try {
       const { data, error } = await supabase.rpc('verify_admin_credentials', {
-        p_username: username,
+        p_username: normalizedUsername,
         p_password: password,
       })
-      if (error) throw error
-      if (!data?.success) throw new Error(data?.message || 'Credenciales inválidas')
+
+      if (error) {
+        console.error('Error verificando credenciales de control:', error)
+        throw new Error(`No se pudo conectar con la autenticación: ${error.message}`)
+      }
+
+      const authResult = typeof data === 'string' ? JSON.parse(data) : data
+      if (!authResult?.success) {
+        throw new Error(authResult?.message || 'Usuario o contraseña inválidos')
+      }
+
       const nextSession = {
-        admin_id: data.admin_id,
-        username: data.username,
-        full_name: data.full_name,
+        admin_id: authResult.admin_id,
+        username: authResult.username,
+        full_name: authResult.full_name,
         login_time: new Date().toISOString(),
       }
       localStorage.setItem('admin_session', JSON.stringify(nextSession))
       setSession(nextSession)
     } catch (error) {
+      console.error('Error iniciando sesión en control de acceso:', error)
       setLoginError(error instanceof Error ? error.message : 'No se pudo iniciar sesión')
     } finally {
       setLoginLoading(false)
@@ -264,7 +282,7 @@ export function AccessControl() {
               autoComplete="current-password"
             />
           </div>
-          <Button className="w-full" disabled={loginLoading}>
+          <Button type="submit" className="w-full" disabled={loginLoading}>
             {loginLoading ? 'Ingresando…' : 'Ingresar'}
           </Button>
           {loginError && <p className="text-sm text-red-500">{loginError}</p>}
