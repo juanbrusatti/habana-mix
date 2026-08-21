@@ -8,7 +8,7 @@
 -- ----------------------------------------------------------------------------
 insert into public.events
   (slug, title, subtitle, description, image_url, starts_at, location,
-   price_label, cta_label, theme, layout, tags, featured, overlay_opacity, sort_order)
+   price_label, cta_label, theme, layout, tags, overlay_opacity)
 values
   ('noche-cubana-timba-en-vivo',
    'Noche Cubana',
@@ -18,7 +18,7 @@ values
    now() + interval '9 days', 'Salón principal — Habana Mix',
    'Entrada $20 · Alumnos gratis', 'Reservar lugar',
    'amber', 'overlay', array['Timba en vivo','Clase gratis 21:00','Cupos limitados'],
-   true, 62, 1),
+   62),
 
   ('bachata-sensual-social',
    'Bachata Social',
@@ -28,7 +28,7 @@ values
    now() + interval '17 days', 'Sala Malecón — Habana Mix',
    'Entrada $15', 'Quiero ir',
    'coral', 'split', array['Bachata','Social','+18'],
-   false, 55, 2),
+   55),
 
   ('workshop-internacional-rueda',
    'Workshop Internacional',
@@ -38,7 +38,7 @@ values
    now() + interval '31 days', 'Habana Mix — Todas las salas',
    'Pack 2 días $60', 'Ver programa',
    'teal', 'split', array['2 días','Maestros invitados','Certificado'],
-   false, 50, 3)
+   50)
 on conflict (slug) do nothing;
 
 -- ----------------------------------------------------------------------------

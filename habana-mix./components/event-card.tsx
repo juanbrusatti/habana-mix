@@ -76,10 +76,20 @@ function daysUntil(iso: string) {
   return `En ${diff} días`
 }
 
+/** Normaliza tags desde DB (array, string o valor raro) a lista limpia. */
+function normalizeTags(tags: AcademyEvent['tags'] | string | null | undefined): string[] {
+  if (Array.isArray(tags)) {
+    return tags.map((t) => String(t).trim()).filter(Boolean)
+  }
+  if (typeof tags === 'string' && tags.trim()) {
+    return tags.split(',').map((t) => t.trim()).filter(Boolean)
+  }
+  return []
+}
+
 /**
- * Card de evento totalmente controlada por los campos de la fila:
- * theme, layout, tags, featured, overlay_opacity, accent_color.
- * El admin cambia esos campos y la card cambia de aspecto sin tocar código.
+ * Card de evento controlada por theme, layout, tags, overlay_opacity y accent_color.
+ * El botón: gratuito → reserva interna; de pago → MercadoPago.
  */
 export function EventCard({ event }: { event: AcademyEvent }) {
   const t = getCardTheme(event.theme)
@@ -88,6 +98,7 @@ export function EventCard({ event }: { event: AcademyEvent }) {
     : undefined
 
   const [open, setOpen] = useState(false)
+  const tags = normalizeTags(event.tags)
 
   const isOverlay = event.layout === 'overlay'
   const isMinimal = event.layout === 'minimal'
@@ -103,7 +114,6 @@ export function EventCard({ event }: { event: AcademyEvent }) {
       className={cn(
         'group border-border/40 bg-card relative overflow-hidden rounded-2xl border transition-all duration-300',
         'hover:-translate-y-0.5 hover:border-border/60',
-        event.featured && 'sm:col-span-2',
       )}
     >
       {/* --- Imagen --- */}
@@ -111,11 +121,7 @@ export function EventCard({ event }: { event: AcademyEvent }) {
         <div
           className={cn(
             'relative overflow-hidden',
-            isOverlay
-              ? event.featured
-                ? 'h-[26rem] sm:h-[30rem]'
-                : 'h-72'
-              : 'h-52 sm:h-60',
+            isOverlay ? 'h-72' : 'h-52 sm:h-60',
           )}
         >
           <img
@@ -140,11 +146,11 @@ export function EventCard({ event }: { event: AcademyEvent }) {
           </span>
 
           {/* Tags */}
-          {event.tags.length > 0 && (
+          {tags.length > 0 && (
             <ul className="absolute top-4 left-4 flex max-w-[70%] flex-wrap gap-1.5">
-              {event.tags.map((tag) => (
+              {tags.map((tag, i) => (
                 <li
-                  key={tag}
+                  key={`${i}-${tag}`}
                   className={cn(
                     'rounded-full border px-2.5 py-1 text-[10px] font-semibold tracking-wider uppercase backdrop-blur-md',
                     t.accentBorder,
@@ -179,11 +185,11 @@ export function EventCard({ event }: { event: AcademyEvent }) {
       <div className="flex flex-col gap-3.5 p-4 sm:gap-4 sm:p-5">
         {!isOverlay && (
           <div>
-            {isMinimal && event.tags.length > 0 && (
+            {isMinimal && tags.length > 0 && (
               <ul className="mb-3 flex flex-wrap gap-1.5">
-                {event.tags.map((tag) => (
+                {tags.map((tag, i) => (
                   <li
-                    key={tag}
+                    key={`${i}-${tag}`}
                     className={cn(
                       'rounded-full border px-2.5 py-1 text-[10px] font-semibold tracking-wider uppercase',
                       t.accentBorder,
@@ -245,7 +251,6 @@ export function EventCard({ event }: { event: AcademyEvent }) {
           )}
         </dl>
 
-        {/** Si el evento es gratuito abrimos el diálogo interno, si no usamos la URL o botón normal */}
         {event.is_free ? (
           <>
             <Button
@@ -262,40 +267,26 @@ export function EventCard({ event }: { event: AcademyEvent }) {
               onOpenChange={setOpen}
             />
           </>
-        ) : event.price_amount ? (
+        ) : (
           <>
             <Button
               className={cn(ctaClassName, t.accentBg)}
               style={ctaStyle}
               onClick={() => setOpen(true)}
+              disabled={!event.price_amount}
             >
               {event.cta_label ?? 'Comprar entrada'}
             </Button>
-            <PaidAttendanceDialog
-              eventId={event.id}
-              eventTitle={event.title}
-              amount={event.price_amount}
-              open={open}
-              onOpenChange={setOpen}
-            />
+            {event.price_amount ? (
+              <PaidAttendanceDialog
+                eventId={event.id}
+                eventTitle={event.title}
+                amount={event.price_amount}
+                open={open}
+                onOpenChange={setOpen}
+              />
+            ) : null}
           </>
-        ) : event.cta_url ? (
-          <a
-            href={event.cta_url}
-            target="_blank"
-            rel="noreferrer"
-            className={cn(ctaClassName, t.accentBg)}
-            style={ctaStyle}
-          >
-            {event.cta_label ?? 'Más información'}
-          </a>
-        ) : (
-          <Button
-            className={cn(ctaClassName, t.accentBg)}
-            style={ctaStyle}
-          >
-            {event.cta_label ?? 'Más información'}
-          </Button>
         )}
       </div>
     </article>

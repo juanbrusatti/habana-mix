@@ -127,7 +127,7 @@ export function AttendanceAdmin() {
   useEffect(() => {
     load()
     try { setAdminId(JSON.parse(localStorage.getItem('admin_session') || '{}').admin_id || '') } catch { setAdminId('') }
-    supabase.from('events').select('id, title').eq('status', 'published').order('starts_at', { ascending: true }).then(({ data }) => setEvents(data || []))
+    supabase.from('events').select('id, title').order('created_at', { ascending: true }).then(({ data }) => setEvents(data || []))
   }, [])
 
   const load = async () => {

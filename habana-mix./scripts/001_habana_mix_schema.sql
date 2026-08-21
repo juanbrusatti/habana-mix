@@ -99,22 +99,18 @@ create table if not exists public.events (
   price_amount    numeric(12,2),
   price_currency  text not null default 'ARS',
   cta_label       text default 'Reservar lugar',
-  cta_url         text,
   -- personalización visual
   theme           card_theme not null default 'amber',
   layout          card_layout not null default 'overlay',
   tags            text[] not null default '{}',
-  featured        boolean not null default false,
   overlay_opacity smallint not null default 60 check (overlay_opacity between 0 and 100),
   accent_color    text,               -- hex/oklch opcional que sobrescribe el theme
-  status          content_status not null default 'published',
-  sort_order      integer not null default 0,
   created_at      timestamptz not null default now(),
   updated_at      timestamptz not null default now()
 );
 
-create index if not exists events_status_starts_idx
-  on public.events (status, starts_at);
+create index if not exists events_created_at_idx
+  on public.events (created_at);
 
 -- ----------------------------------------------------------------------------
 -- CLASSES
@@ -277,10 +273,10 @@ drop policy if exists "profiles_insert_own" on public.profiles;
 create policy "profiles_insert_own" on public.profiles
   for insert with check (auth.uid() = id);
 
--- EVENTS: lectura pública de lo publicado, escritura solo admin
+-- EVENTS: lectura pública (si existe, está publicado), escritura solo admin
 drop policy if exists "events_public_read" on public.events;
 create policy "events_public_read" on public.events
-  for select using (status = 'published' or public.is_admin());
+  for select using (true);
 
 drop policy if exists "events_admin_write" on public.events;
 create policy "events_admin_write" on public.events

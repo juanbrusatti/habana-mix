@@ -15,7 +15,7 @@ export async function POST(request: Request) {
     const required = ['event_id', 'name', 'surname', 'dni', 'phone', 'email']
     if (required.some((key) => typeof body[key] !== 'string' || !body[key].trim())) return NextResponse.json({ error: 'Completá todos los campos' }, { status: 400 })
 
-    const { data: event, error: eventError } = await supabaseAdmin.from('events').select('id, title, price_amount, price_currency, status').eq('id', body.event_id).eq('status', 'published').maybeSingle()
+    const { data: event, error: eventError } = await supabaseAdmin.from('events').select('id, title, price_amount, price_currency').eq('id', body.event_id).maybeSingle()
     if (eventError) throw eventError
     if (!event) return NextResponse.json({ error: 'Evento no encontrado' }, { status: 404 })
 

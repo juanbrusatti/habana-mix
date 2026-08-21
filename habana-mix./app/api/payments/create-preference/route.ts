@@ -38,9 +38,8 @@ export async function POST(req: Request) {
 
     const { data: event, error: eventError } = await supabaseAdmin
       .from('events')
-      .select('id, title, is_free, price_amount, price_currency, status')
+      .select('id, title, is_free, price_amount, price_currency')
       .eq('id', payload.event_id)
-      .eq('status', 'published')
       .maybeSingle()
 
     if (eventError) throw eventError

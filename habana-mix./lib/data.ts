@@ -5,14 +5,8 @@ import type {
 } from './types'
 
 /**
- * Datos de ejemplo idénticos a scripts/002_habana_mix_seed.sql.
- * Cuando conectes Supabase, reemplazá estas funciones por consultas:
- *
- *   const supabase = await createClient()
- *   const { data } = await supabase.from('events')
- *     .select('*').eq('status','published').order('starts_at')
- *
- * La firma (async + mismo tipo de retorno) ya está lista para el cambio.
+ * Datos de ejemplo. En producción los eventos salen de Supabase:
+ *   .from('events').select('*').order('created_at')
  */
 
 const daysFromNow = (days: number) =>
@@ -35,15 +29,11 @@ const events: AcademyEvent[] = [
     price_currency: 'ARS',
     is_free: true,
     cta_label: 'Reservar lugar',
-    cta_url: null,
     theme: 'amber',
     layout: 'overlay',
     tags: ['Timba en vivo', 'Clase gratis 21:00', 'Cupos limitados'],
-    featured: true,
     overlay_opacity: 62,
     accent_color: null,
-    status: 'published',
-    sort_order: 1,
   },
   {
     id: 'evt-2',
@@ -61,15 +51,11 @@ const events: AcademyEvent[] = [
     price_currency: 'ARS',
     is_free: false,
     cta_label: 'Quiero ir',
-    cta_url: null,
     theme: 'coral',
     layout: 'split',
     tags: ['Bachata', 'Social', '+18'],
-    featured: false,
     overlay_opacity: 55,
     accent_color: null,
-    status: 'published',
-    sort_order: 2,
   },
   {
     id: 'evt-3',
@@ -87,15 +73,11 @@ const events: AcademyEvent[] = [
     price_currency: 'ARS',
     is_free: false,
     cta_label: 'Ver programa',
-    cta_url: null,
     theme: 'teal',
     layout: 'split',
     tags: ['2 días', 'Maestros invitados', 'Certificado'],
-    featured: false,
     overlay_opacity: 50,
     accent_color: null,
-    status: 'published',
-    sort_order: 3,
   },
 ]
 

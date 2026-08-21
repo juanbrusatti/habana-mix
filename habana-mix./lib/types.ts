@@ -9,8 +9,6 @@ export type CardTheme = 'amber' | 'coral' | 'teal' | 'noche' | 'crema'
 /** Layout visual de la card. Coincide con el enum `card_layout` en SQL. */
 export type CardLayout = 'overlay' | 'split' | 'minimal'
 
-export type EventStatus = 'draft' | 'published' | 'archived'
-
 export interface AcademyEvent {
   id: string
   slug: string
@@ -26,20 +24,16 @@ export interface AcademyEvent {
   price_currency: string
   is_free: boolean
   cta_label: string | null
-  cta_url: string | null
   /* --- Personalización libre de la card --- */
   theme: CardTheme
   layout: CardLayout
   /** Etiquetas superiores tipo "Timba en vivo", "Cupos limitados" */
   tags: string[]
-  /** Destaca la card a ancho completo en el carrusel/grid */
-  featured: boolean
   /** Intensidad del degradado sobre la imagen (0-100) */
   overlay_opacity: number
   /** Sobrescribe el color del tema si el admin quiere algo puntual */
   accent_color: string | null
-  status: EventStatus
-  sort_order: number
+  created_at?: string
 }
 
 

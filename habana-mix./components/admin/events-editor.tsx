@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from 'sonner'
-import { Loader2, Plus, Trash2, Edit2, Calendar, Clock, MapPin, Upload, X } from 'lucide-react'
+import { Loader2, Plus, Trash2, Edit2, Calendar, MapPin } from 'lucide-react'
 
 function formatEventDateTime(startsAt: string, endsAt: string | null) {
   const startDate = new Date(startsAt)
@@ -61,15 +61,12 @@ interface Event {
   price_amount: number | null
   price_currency: string
   cta_label: string
-  cta_url: string | null
   theme: string
   layout: string
   tags: string[]
-  featured: boolean
   overlay_opacity: number
   accent_color: string | null
-  status: string
-  sort_order: number
+  created_at: string
 }
 
 interface EventFormData {
@@ -86,15 +83,11 @@ interface EventFormData {
   price_amount: string
   price_currency: string
   cta_label: string
-  cta_url: string
   theme: string
   layout: string
   tags: string
-  featured: boolean
   overlay_opacity: number
   accent_color: string
-  status: string
-  sort_order: number
 }
 
 const emptyEvent: EventFormData = {
@@ -111,15 +104,11 @@ const emptyEvent: EventFormData = {
   price_amount: '',
   price_currency: 'ARS',
   cta_label: 'Reservar lugar',
-  cta_url: '',
   theme: 'amber',
   layout: 'overlay',
   tags: '',
-  featured: false,
   overlay_opacity: 60,
   accent_color: '',
-  status: 'published',
-  sort_order: 0
 }
 
 export function EventsEditor() {
@@ -130,7 +119,6 @@ export function EventsEditor() {
   const [formData, setFormData] = useState<EventFormData>(emptyEvent)
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
-  const [imageFile, setImageFile] = useState<File | null>(null)
 
   useEffect(() => {
     loadEvents()
@@ -141,8 +129,7 @@ export function EventsEditor() {
       const { data, error } = await supabase
         .from('events')
         .select('*')
-        .order('sort_order', { ascending: true })
-        .order('starts_at', { ascending: true })
+        .order('created_at', { ascending: true })
 
       if (error) throw error
       setEvents(data || [])
@@ -163,20 +150,24 @@ export function EventsEditor() {
   const handleEdit = (event: Event) => {
     setEditingEvent(event)
     setFormData({
-      ...event,
-      tags: event.tags.join(', '),
-      starts_at: new Date(event.starts_at).toISOString().slice(0, 16),
-      ends_at: event.ends_at ? new Date(event.ends_at).toISOString().slice(0, 16) : '',
+      slug: event.slug,
+      title: event.title,
       subtitle: event.subtitle || '',
       description: event.description || '',
       image_url: event.image_url || '',
+      starts_at: new Date(event.starts_at).toISOString().slice(0, 16),
+      ends_at: event.ends_at ? new Date(event.ends_at).toISOString().slice(0, 16) : '',
       location: event.location || '',
       is_free: event.is_free,
       price_label: event.price_label || '',
       price_amount: event.price_amount?.toString() || '',
       price_currency: event.price_currency || 'ARS',
-      cta_url: event.cta_url || '',
-      accent_color: event.accent_color || ''
+      cta_label: event.cta_label || 'Reservar lugar',
+      theme: event.theme,
+      layout: event.layout,
+      tags: Array.isArray(event.tags) ? event.tags.join(', ') : '',
+      overlay_opacity: event.overlay_opacity,
+      accent_color: event.accent_color || '',
     })
     setShowForm(true)
   }
@@ -198,37 +189,35 @@ export function EventsEditor() {
         .from('media')
         .getPublicUrl(filePath)
 
-      setFormData({ ...formData, image_url: publicUrl })
+      setFormData((prev) => ({ ...prev, image_url: publicUrl }))
       toast.success('Imagen subida exitosamente')
     } catch (error) {
       console.error('Error subiendo imagen:', error)
       toast.error('Error al subir la imagen')
     } finally {
       setUploading(false)
-      setImageFile(null)
     }
   }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
-    if (file) {
-      if (!file.type.startsWith('image/')) {
-        toast.error('Solo se permiten archivos de imagen')
-        return
-      }
-      
-      if (file.size > 5 * 1024 * 1024) {
-        toast.error('La imagen no puede superar 5MB')
-        return
-      }
+    if (!file) return
 
-      setImageFile(file)
-      handleImageUpload(file)
+    if (!file.type.startsWith('image/')) {
+      toast.error('Solo se permiten archivos de imagen')
+      return
     }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('La imagen no puede superar 5MB')
+      return
+    }
+
+    handleImageUpload(file)
   }
 
   const handleRemoveImage = () => {
-    setFormData({ ...formData, image_url: '' })
+    setFormData((prev) => ({ ...prev, image_url: '' }))
     toast.info('Imagen eliminada')
   }
 
@@ -262,33 +251,38 @@ export function EventsEditor() {
       }
 
       const eventData = {
-        ...formData,
-        tags: formData.tags.split(',').map(t => t.trim()).filter(t => t),
-        price_amount: formData.is_free ? null : Number(formData.price_amount),
+        slug: formData.slug,
+        title: formData.title,
+        subtitle: formData.subtitle || null,
+        description: formData.description || null,
+        image_url: formData.image_url || null,
         starts_at: new Date(formData.starts_at).toISOString(),
-        ends_at: formData.ends_at ? new Date(formData.ends_at).toISOString() : null
+        ends_at: formData.ends_at ? new Date(formData.ends_at).toISOString() : null,
+        location: formData.location || null,
+        is_free: formData.is_free,
+        price_label: formData.is_free ? null : (formData.price_label || null),
+        price_amount: formData.is_free ? null : Number(formData.price_amount),
+        price_currency: formData.price_currency,
+        cta_label: formData.cta_label || (formData.is_free ? 'Reservar lugar' : 'Comprar entrada'),
+        theme: formData.theme,
+        layout: formData.layout,
+        tags: formData.tags.split(',').map((t) => t.trim()).filter(Boolean),
+        overlay_opacity: formData.overlay_opacity,
+        accent_color: formData.accent_color || null,
       }
 
-      console.log('Enviando datos del evento:', eventData)
-
       if (editingEvent) {
-        const { data, error } = await supabase
+        const { error } = await supabase
           .from('events')
           .update(eventData)
           .eq('id', editingEvent.id)
-          .select()
-
-        console.log('Resultado de update:', { data, error })
 
         if (error) throw error
         toast.success('Evento actualizado')
       } else {
-        const { data, error } = await supabase
+        const { error } = await supabase
           .from('events')
           .insert(eventData)
-          .select()
-
-        console.log('Resultado de insert:', { data, error })
 
         if (error) throw error
         toast.success('Evento creado')
@@ -386,7 +380,7 @@ export function EventsEditor() {
                       size="icon"
                       onClick={handleRemoveImage}
                     >
-                      <X className="w-4 h-4" />
+                      <Trash2 className="w-4 h-4" />
                     </Button>
                   )}
                 </div>
@@ -447,7 +441,13 @@ export function EventsEditor() {
                     type="radio"
                     name="is_free"
                     checked={formData.is_free}
-                    onChange={() => setFormData({ ...formData, is_free: true, price_label: '', price_amount: '' })}
+                    onChange={() => setFormData({
+                      ...formData,
+                      is_free: true,
+                      price_label: '',
+                      price_amount: '',
+                      cta_label: 'Reservar lugar',
+                    })}
                     className="w-4 h-4"
                   />
                   <span>Gratuito</span>
@@ -457,7 +457,11 @@ export function EventsEditor() {
                     type="radio"
                     name="is_free"
                     checked={!formData.is_free}
-                    onChange={() => setFormData({ ...formData, is_free: false })}
+                    onChange={() => setFormData({
+                      ...formData,
+                      is_free: false,
+                      cta_label: formData.cta_label === 'Reservar lugar' ? 'Comprar entrada' : formData.cta_label,
+                    })}
                     className="w-4 h-4"
                   />
                   <span>De pago</span>
@@ -466,7 +470,7 @@ export function EventsEditor() {
             </div>
 
             {!formData.is_free && (
-              <div className="grid gap-3 sm:grid-cols-2">
+              <div className="grid gap-3 sm:grid-cols-2 md:col-span-2">
                 <div className="space-y-2">
                   <Label htmlFor="price_amount">Monto a cobrar (ARS) *</Label>
                   <Input
@@ -498,17 +502,7 @@ export function EventsEditor() {
                 id="cta_label"
                 value={formData.cta_label}
                 onChange={(e) => setFormData({ ...formData, cta_label: e.target.value })}
-                placeholder="Reservar lugar"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="cta_url">URL del botón</Label>
-              <Input
-                id="cta_url"
-                value={formData.cta_url}
-                onChange={(e) => setFormData({ ...formData, cta_url: e.target.value })}
-                placeholder="https://wa.me/..."
+                placeholder={formData.is_free ? 'Reservar lugar' : 'Comprar entrada'}
               />
             </div>
 
@@ -520,41 +514,6 @@ export function EventsEditor() {
                 onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
                 placeholder="Timba en vivo, Clase gratis, Cupos limitados"
               />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="sort_order">Orden</Label>
-              <Input
-                id="sort_order"
-                type="number"
-                value={formData.sort_order}
-                onChange={(e) => setFormData({ ...formData, sort_order: parseInt(e.target.value) || 0 })}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="status">Estado</Label>
-              <select
-                id="status"
-                value={formData.status}
-                onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                className="w-full rounded-md border border-input bg-background px-3 py-2"
-              >
-                <option value="draft">Borrador</option>
-                <option value="published">Publicado</option>
-                <option value="archived">Archivado</option>
-              </select>
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                id="featured"
-                checked={formData.featured}
-                onChange={(e) => setFormData({ ...formData, featured: e.target.checked })}
-                className="w-4 h-4"
-              />
-              <Label htmlFor="featured">Destacado</Label>
             </div>
           </div>
 
@@ -600,18 +559,8 @@ export function EventsEditor() {
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">
                     <h4 className="font-semibold">{event.title}</h4>
-                    {event.featured && (
-                      <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded">
-                        Destacado
-                      </span>
-                    )}
-                    <span className={`text-xs px-2 py-0.5 rounded ${
-                      event.status === 'published' ? 'bg-green-10 text-green-600' :
-                      event.status === 'draft' ? 'bg-yellow-10 text-yellow-600' :
-                      'bg-gray-10 text-gray-600'
-                    }`}>
-                      {event.status === 'published' ? 'Publicado' :
-                       event.status === 'draft' ? 'Borrador' : 'Archivado'}
+                    <span className="text-xs px-2 py-0.5 rounded bg-muted text-muted-foreground">
+                      {event.is_free ? 'Gratuito' : 'De pago'}
                     </span>
                   </div>
                   {event.subtitle && (
@@ -629,9 +578,7 @@ export function EventsEditor() {
                       </div>
                     )}
                     {event.price_label && (
-                      <div className="flex items-center gap-1">
-                        <span>{event.price_label}</span>
-                      </div>
+                      <span>{event.price_label}</span>
                     )}
                   </div>
                 </div>
