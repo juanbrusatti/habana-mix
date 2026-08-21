@@ -92,8 +92,8 @@ function AttendanceRecordRow({
 }) {
   return (
     <li className="border rounded-lg p-3 text-sm">
-      <div className="flex items-start justify-between gap-3">
-        <div>
+      <div className="flex flex-col sm:flex-row items-start justify-between gap-3">
+        <div className="w-full">
           <div className="font-medium">
             {record.name} {record.surname}
           </div>
@@ -102,10 +102,10 @@ function AttendanceRecordRow({
           </div>
         </div>
 
-        <div className="flex shrink-0 flex-wrap justify-end gap-2">
-          {onTicket && !record.is_free && <Button variant="outline" size="sm" onClick={() => onTicket(record)}>Entrada</Button>}
-          {onResendTicket && !record.is_free && <Button variant="outline" size="sm" onClick={() => onResendTicket(record)}>Reenviar</Button>}
-          <Button variant="destructive" size="sm" onClick={() => onDelete(record.id, record.name, record.surname)}>Eliminar</Button>
+        <div className="flex shrink-0 flex-wrap justify-end gap-2 w-full sm:w-auto">
+          {onTicket && !record.is_free && <Button variant="outline" size="sm" onClick={() => onTicket(record)} className="flex-1 sm:flex-none">Entrada</Button>}
+          {onResendTicket && !record.is_free && <Button variant="outline" size="sm" onClick={() => onResendTicket(record)} className="flex-1 sm:flex-none">Reenviar</Button>}
+          <Button variant="destructive" size="sm" onClick={() => onDelete(record.id, record.name, record.surname)} className="flex-1 sm:flex-none">Eliminar</Button>
         </div>
       </div>
     </li>
@@ -301,9 +301,9 @@ export function AttendanceAdmin() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="text-xl font-semibold">Asistencias</h3>
-        <Button variant="outline" onClick={load}>Actualizar</Button>
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <h3 className="text-lg sm:text-xl font-semibold">Asistencias</h3>
+        <Button variant="outline" onClick={load} className="w-full sm:w-auto">Actualizar</Button>
       </div>
 
       <Dialog open={Boolean(pendingDelete)} onOpenChange={(open) => !open && setPendingDelete(null)}>
@@ -338,10 +338,10 @@ export function AttendanceAdmin() {
       </Dialog>
 
       <Tabs defaultValue="gratuitos">
-        <div className="mb-3 flex justify-end"><Button onClick={() => setGiftOpen(true)}>Crear invitación paga</Button></div>
-        <TabsList>
-          <TabsTrigger value="gratuitos">Gratuitos ({gratuitos.length})</TabsTrigger>
-          <TabsTrigger value="pagos">Pagos ({pagos.length})</TabsTrigger>
+        <div className="mb-3 flex justify-end"><Button onClick={() => setGiftOpen(true)} className="w-full sm:w-auto">Crear invitación paga</Button></div>
+        <TabsList className="w-full flex-wrap h-auto data-horizontal:h-auto min-h-[40px] sm:min-h-[36px]">
+          <TabsTrigger value="gratuitos" className="text-xs sm:text-sm px-3 py-2 sm:px-4">Gratuitos ({gratuitos.length})</TabsTrigger>
+          <TabsTrigger value="pagos" className="text-xs sm:text-sm px-3 py-2 sm:px-4">Pagos ({pagos.length})</TabsTrigger>
         </TabsList>
 
         <TabsContent value="gratuitos">
@@ -353,9 +353,9 @@ export function AttendanceAdmin() {
             <div className="space-y-3">
               {Object.entries(filteredEventList).map(([title, list]) => (
                 <div key={title} className="border rounded-lg p-3">
-                  <div className="flex items-center justify-between gap-3">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                     <div className="font-semibold">{title}</div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
                       <div className="text-sm text-muted-foreground">{list.length} registros</div>
                       <Button
                         size="sm"
@@ -369,7 +369,7 @@ export function AttendanceAdmin() {
 
                   {selectedEvent === title && (
                     <div className="mt-3 space-y-3">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 w-full">
                         <input
                           value={eventSearchTerm[title] || ''}
                           onChange={(event) =>
@@ -432,9 +432,9 @@ export function AttendanceAdmin() {
             <div className="space-y-3">
               {Object.entries(filteredPaidEventList).map(([title, list]) => (
                 <div key={title} className="border rounded-lg p-3">
-                  <div className="flex items-center justify-between gap-3">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                     <div className="font-semibold">{title}</div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
                       <div className="text-sm text-muted-foreground">{list.length} registros</div>
                       <Button
                         size="sm"
@@ -455,7 +455,7 @@ export function AttendanceAdmin() {
 
                   {selectedEvent === `paid:${title}` && (
                     <div className="mt-3 space-y-3">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 w-full">
                         <input
                           value={eventSearchTerm[`paid:${title}`] || ''}
                           onChange={(event) =>

@@ -310,18 +310,18 @@ export function EventsEditor() {
 
   if (showForm) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         <div className="flex items-center justify-between">
-          <h3 className="text-xl font-semibold">
+          <h3 className="text-lg sm:text-xl font-semibold">
             {editingEvent ? 'Editar evento' : 'Nuevo evento'}
           </h3>
-          <Button variant="outline" onClick={() => setShowForm(false)}>
+          <Button variant="outline" size="sm" onClick={() => setShowForm(false)}>
             Cancelar
           </Button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid gap-4 md:grid-cols-2">
+        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+          <div className="grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-2">
             <div className="space-y-2 md:col-span-2">
               <Label htmlFor="title">Título *</Label>
               <Input
@@ -329,6 +329,7 @@ export function EventsEditor() {
                 value={formData.title}
                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                 required
+                className="text-base"
               />
             </div>
 
@@ -338,6 +339,7 @@ export function EventsEditor() {
                 id="subtitle"
                 value={formData.subtitle}
                 onChange={(e) => setFormData({ ...formData, subtitle: e.target.value })}
+                className="text-base"
               />
             </div>
 
@@ -349,6 +351,7 @@ export function EventsEditor() {
                 onChange={(e) => setFormData({ ...formData, slug: e.target.value.toLowerCase().replace(/\s+/g, '-') })}
                 required
                 placeholder="noche-cubana-timba"
+                className="text-base"
               />
             </div>
 
@@ -365,13 +368,14 @@ export function EventsEditor() {
             <div className="space-y-2 md:col-span-2">
               <Label htmlFor="image">Imagen del evento</Label>
               <div className="space-y-3">
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2">
                   <Input
                     id="image"
                     type="file"
                     accept="image/*"
                     onChange={handleFileChange}
                     disabled={uploading}
+                    className="text-base"
                   />
                   {formData.image_url && (
                     <Button
@@ -379,6 +383,7 @@ export function EventsEditor() {
                       variant="outline"
                       size="icon"
                       onClick={handleRemoveImage}
+                      className="w-full sm:w-auto"
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>
@@ -395,7 +400,7 @@ export function EventsEditor() {
                     <img
                       src={formData.image_url}
                       alt="Vista previa"
-                      className="w-full h-48 object-cover"
+                      className="w-full h-32 sm:h-48 object-cover"
                     />
                   </div>
                 )}
@@ -538,27 +543,27 @@ export function EventsEditor() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h3 className="text-xl font-semibold">Gestión de Eventos</h3>
-        <Button onClick={handleCreate}>
+    <div className="space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <h3 className="text-lg sm:text-xl font-semibold">Gestión de Eventos</h3>
+        <Button onClick={handleCreate} className="w-full sm:w-auto">
           <Plus className="w-4 h-4 mr-2" />
           Nuevo evento
         </Button>
       </div>
 
       {events.length === 0 ? (
-        <div className="text-center p-12 border rounded-lg">
+        <div className="text-center p-8 sm:p-12 border rounded-lg">
           <p className="text-muted-foreground">No hay eventos creados</p>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-3 sm:space-y-4">
           {events.map((event) => (
-            <div key={event.id} className="border rounded-lg p-4 space-y-3">
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    <h4 className="font-semibold">{event.title}</h4>
+            <div key={event.id} className="border rounded-lg p-3 sm:p-4 space-y-2 sm:space-y-3">
+              <div className="flex flex-col sm:flex-row items-start justify-between gap-3 sm:gap-4">
+                <div className="flex-1 w-full">
+                  <div className="flex items-center gap-2 mb-2 flex-wrap">
+                    <h4 className="font-semibold text-base sm:text-base">{event.title}</h4>
                     <span className="text-xs px-2 py-0.5 rounded bg-muted text-muted-foreground">
                       {event.is_free ? 'Gratuito' : 'De pago'}
                     </span>
@@ -566,14 +571,14 @@ export function EventsEditor() {
                   {event.subtitle && (
                     <p className="text-sm text-muted-foreground">{event.subtitle}</p>
                   )}
-                  <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
+                  <div className="flex flex-wrap items-center gap-2 sm:gap-4 mt-2 text-sm text-muted-foreground">
                     <div className="flex items-center gap-1">
-                      <Calendar className="w-4 h-4" />
+                      <Calendar className="w-3 h-3 sm:w-4 sm:h-4" />
                       {formatEventDateTime(event.starts_at, event.ends_at)}
                     </div>
                     {event.location && (
                       <div className="flex items-center gap-1">
-                        <MapPin className="w-4 h-4" />
+                        <MapPin className="w-3 h-3 sm:w-4 sm:h-4" />
                         {event.location}
                       </div>
                     )}
@@ -582,12 +587,12 @@ export function EventsEditor() {
                     )}
                   </div>
                 </div>
-                <div className="flex gap-2">
-                  <Button size="sm" variant="outline" onClick={() => handleEdit(event)}>
-                    <Edit2 className="w-4 h-4" />
+                <div className="flex gap-2 w-full sm:w-auto">
+                  <Button size="sm" variant="outline" onClick={() => handleEdit(event)} className="flex-1 sm:flex-none">
+                    <Edit2 className="w-3 h-3 sm:w-4 sm:h-4" />
                   </Button>
-                  <Button size="sm" variant="destructive" onClick={() => handleDelete(event.id)}>
-                    <Trash2 className="w-4 h-4" />
+                  <Button size="sm" variant="destructive" onClick={() => handleDelete(event.id)} className="flex-1 sm:flex-none">
+                    <Trash2 className="w-3 h-3 sm:w-4 sm:h-4" />
                   </Button>
                 </div>
               </div>

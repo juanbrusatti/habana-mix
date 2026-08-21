@@ -89,13 +89,13 @@ export default function AdminDashboard() {
       <nav className="border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16 items-center">
-            <div className="flex items-center space-x-4">
-              <h1 className="text-xl font-bold">Habana Mix Admin</h1>
-              <span className="text-sm text-muted-foreground">Panel de Administración</span>
+            <div className="flex items-center space-x-2 sm:space-x-4">
+              <h1 className="text-lg sm:text-xl font-bold">Habana Mix Admin</h1>
+              <span className="hidden sm:inline text-sm text-muted-foreground">Panel de Administración</span>
             </div>
-            <div className="flex items-center space-x-4">
-              <span className="text-sm">{user?.full_name || user?.username}</span>
-              <Button variant="outline" size="sm" onClick={handleLogout}>
+            <div className="flex items-center space-x-2 sm:space-x-4">
+              <span className="hidden sm:inline text-sm">{user?.full_name || user?.username}</span>
+              <Button variant="outline" size="sm" onClick={handleLogout} className="text-xs sm:text-sm">
                 Cerrar sesión
               </Button>
             </div>
@@ -103,38 +103,38 @@ export default function AdminDashboard() {
         </div>
       </nav>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
-          <TabsList>
-            <TabsTrigger value="clases" className="flex items-center gap-2">
-              <Lock className="w-4 h-4" />
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
+        <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-4 sm:space-y-6">
+          <TabsList className="w-full flex-wrap h-auto data-horizontal:h-auto min-h-[40px] sm:min-h-[36px]">
+            <TabsTrigger value="clases" className="flex items-center gap-2 text-xs sm:text-sm px-3 py-2 sm:px-4">
+              <Lock className="w-3 h-3 sm:w-4 sm:h-4" />
               Clases
             </TabsTrigger>
-            <TabsTrigger value="eventos" className="flex items-center gap-2">
-              <Unlock className="w-4 h-4" />
+            <TabsTrigger value="eventos" className="flex items-center gap-2 text-xs sm:text-sm px-3 py-2 sm:px-4">
+              <Unlock className="w-3 h-3 sm:w-4 sm:h-4" />
               Eventos
             </TabsTrigger>
-            <TabsTrigger value="asistencia" className="flex items-center gap-2">
-              <Unlock className="w-4 h-4" />
+            <TabsTrigger value="asistencia" className="flex items-center gap-2 text-xs sm:text-sm px-3 py-2 sm:px-4">
+              <Unlock className="w-3 h-3 sm:w-4 sm:h-4" />
               Asistencia
             </TabsTrigger>
-            <TabsTrigger value="sorteo" className="flex items-center gap-2">
-              <Unlock className="w-4 h-4" />
+            <TabsTrigger value="sorteo" className="flex items-center gap-2 text-xs sm:text-sm px-3 py-2 sm:px-4">
+              <Unlock className="w-3 h-3 sm:w-4 sm:h-4" />
               Sorteo
             </TabsTrigger>
-            <TabsTrigger value="general" className="flex items-center gap-2">
-              <Unlock className="w-4 h-4" />
-              Edición General
+            <TabsTrigger value="general" className="flex items-center gap-2 text-xs sm:text-sm px-3 py-2 sm:px-4">
+              <Unlock className="w-3 h-3 sm:w-4 sm:h-4" />
+              General
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="clases" className="space-y-4">
-            <div className="p-8 border rounded-lg bg-muted/50">
+            <div className="p-4 sm:p-8 border rounded-lg bg-muted/50">
               <div className="flex items-center gap-3 mb-4">
-                <Lock className="w-8 h-8 text-muted-foreground" />
-                <h3 className="text-xl font-semibold">Sección Bloqueada</h3>
+                <Lock className="w-6 h-6 sm:w-8 sm:h-8 text-muted-foreground" />
+                <h3 className="text-lg sm:text-xl font-semibold">Sección Bloqueada</h3>
               </div>
-              <p className="text-muted-foreground">
+              <p className="text-sm sm:text-base text-muted-foreground">
                 La gestión de clases estará disponible próximamente.
               </p>
             </div>
@@ -152,19 +152,19 @@ export default function AdminDashboard() {
             <RaffleAdmin />
           </TabsContent>
 
-          <TabsContent value="general" className="space-y-6">
-            <div className="p-6 border rounded-lg">
-              <h3 className="text-xl font-semibold mb-4">Edición General</h3>
-              <p className="text-muted-foreground mb-6">
+          <TabsContent value="general" className="space-y-4 sm:space-y-6">
+            <div className="p-4 sm:p-6 border rounded-lg">
+              <h3 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">Edición General</h3>
+              <p className="text-sm sm:text-base text-muted-foreground mb-4 sm:mb-6">
                 Aquí podrás editar elementos generales del sitio.
               </p>
               
-              <Tabs defaultValue="hero" className="space-y-6">
-                <TabsList>
-                  <TabsTrigger value="hero">Hero</TabsTrigger>
-                  <TabsTrigger value="ubicacion">Ubicación</TabsTrigger>
-                  <TabsTrigger value="quienes-somos">Quiénes somos</TabsTrigger>
-                  <TabsTrigger value="footer">Footer</TabsTrigger>
+              <Tabs defaultValue="hero" className="space-y-4 sm:space-y-6">
+                <TabsList className="w-full flex-wrap h-auto data-horizontal:h-auto min-h-[40px] sm:min-h-[36px]">
+                  <TabsTrigger value="hero" className="text-xs sm:text-sm px-3 py-2 sm:px-4">Hero</TabsTrigger>
+                  <TabsTrigger value="ubicacion" className="text-xs sm:text-sm px-3 py-2 sm:px-4">Ubicación</TabsTrigger>
+                  <TabsTrigger value="quienes-somos" className="text-xs sm:text-sm px-3 py-2 sm:px-4">Quiénes somos</TabsTrigger>
+                  <TabsTrigger value="footer" className="text-xs sm:text-sm px-3 py-2 sm:px-4">Footer</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="hero" className="space-y-4">
