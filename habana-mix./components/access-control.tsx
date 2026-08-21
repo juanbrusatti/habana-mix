@@ -144,7 +144,7 @@ export function AccessControl() {
     return data as ScanResult & { error?: string }
   }, [session])
 
-  /** Escaneo: solo busca y carga el código alfa. No marca como usada. */
+  /** Escanea y valida en el mismo control, sin abrir el contenido del QR. */
   const handleScan = useCallback(async (rawValue: string) => {
     if (!session || handlingScanRef.current) return
     handlingScanRef.current = true
@@ -152,7 +152,7 @@ export function AccessControl() {
     setResult(null)
 
     try {
-      const data = await requestTicket(rawValue, false)
+      const data = await requestTicket(rawValue, true)
       if (!data) return
 
       if (data.error) {
@@ -161,16 +161,8 @@ export function AccessControl() {
         return
       }
 
-      const code = data.attendee?.ticket_code || ''
-      if (code) setValue(code)
-
-      setResult({
-        ...data,
-        pendingConfirm: !data.alreadyUsed,
-        message: data.alreadyUsed
-          ? data.message
-          : `QR leído (${code}). Tocá Validar entrada para autorizar.`,
-      })
+      setResult(data)
+      setValue('')
     } finally {
       setLoading(false)
       handlingScanRef.current = false
