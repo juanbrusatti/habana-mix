@@ -52,6 +52,23 @@ export function PaidAttendanceDialog({
 
     setSubmitting(true)
     try {
+      // Primero registrar el intento de pago en la tabla de seguridad
+      const attemptResponse = await fetch('/api/payments/attempts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          event_id: eventId, 
+          event_title: eventTitle,
+          amount,
+          ...form 
+        }),
+      })
+      
+      if (!attemptResponse.ok) {
+        console.warn('No se pudo registrar el intento de pago, pero continuando con el proceso')
+      }
+
+      // Luego crear la preferencia de MercadoPago
       const response = await fetch('/api/payments/create-preference', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
