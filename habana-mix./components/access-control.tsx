@@ -301,27 +301,16 @@ export function AccessControl() {
         </p>
       </div>
 
-      <div className="grid gap-2 sm:grid-cols-2">
-        <Button
-          type="button"
-          onClick={() => {
-            setCameraError('')
-            setCameraOpen(true)
-          }}
-        >
-          Abrir cámara
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => {
-            localStorage.removeItem('admin_session')
-            setSession(null)
-          }}
-        >
-          Cerrar sesión
-        </Button>
-      </div>
+      <Button
+        type="button"
+        className="w-full sm:w-auto"
+        onClick={() => {
+          setCameraError('')
+          setCameraOpen(true)
+        }}
+      >
+        Abrir cámara
+      </Button>
 
       {cameraOpen && (
         <div id="ticket-qr-reader" className="w-full overflow-hidden rounded-xl border bg-black" />
@@ -413,6 +402,20 @@ export function AccessControl() {
           ))}
         </div>
       </section>
+
+      <div className="border-t pt-5">
+        <Button
+          type="button"
+          variant="ghost"
+          className="text-muted-foreground"
+          onClick={() => {
+            localStorage.removeItem('admin_session')
+            setSession(null)
+          }}
+        >
+          Cerrar sesión
+        </Button>
+      </div>
     </main>
   )
 }
