@@ -25,7 +25,7 @@ export function TicketView({ token }: { token: string }) {
         const data = await response.json()
         if (!response.ok) throw new Error(data.error || 'Entrada no encontrada')
         setTicket(data)
-        setQrDataUrl(await QRCode.toDataURL(`${window.location.origin}/entrada/${token}`, { width: 320, margin: 2 }))
+        setQrDataUrl(await QRCode.toDataURL(data.code, { width: 320, margin: 2 }))
       })
       .catch((reason) => setError(reason instanceof Error ? reason.message : 'No se pudo cargar la entrada'))
       .finally(() => setLoading(false))
@@ -33,8 +33,7 @@ export function TicketView({ token }: { token: string }) {
 
   const downloadTicket = async () => {
     if (!ticket) return
-    const ticketUrl = `${window.location.origin}/entrada/${token}`
-    const qrDataUrl = await QRCode.toDataURL(ticketUrl, { width: 320, margin: 2 })
+    const qrDataUrl = await QRCode.toDataURL(ticket.code, { width: 320, margin: 2 })
     const html = `<!doctype html><html><head><meta charset="utf-8"><title>Entrada - ${ticket.eventTitle}</title><style>body{font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:32px;color:#161616}img{display:block;width:280px;margin:24px auto}.code{font-size:32px;letter-spacing:8px;font-weight:700;text-align:center;padding:16px;border:2px solid #161616}h1{text-align:center}</style></head><body><h1>${ticket.eventTitle}</h1><p>Entrada a nombre de: <strong>${ticket.name}</strong></p><img src="${qrDataUrl}" alt="Código QR"><div class="code">${ticket.code}</div><p>Presentá este QR o el código en el ingreso.</p></body></html>`
     const blob = new Blob([html], { type: 'text/html;charset=utf-8' })
     const link = document.createElement('a')

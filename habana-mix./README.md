@@ -206,7 +206,7 @@ Los pagos rechazados o abandonados no crean asistencias y permiten volver a inte
 
 ## Entradas QR y control de acceso
 
-Cuando un pago queda aprobado se genera un código único de cinco caracteres y un token privado para el QR. La pantalla `/pago/exito` muestra ambos y permite descargar un archivo con la entrada. También se envía por email un enlace privado para volver a abrirla y descargarla.
+Cuando un pago queda aprobado se genera un código único de cinco caracteres y un QR que contiene ese código. La pantalla `/pago/exito` muestra ambos y permite descargar un archivo con la entrada. También se envía por email un enlace privado para volver a abrirla y descargarla. El QR no contiene un enlace, por lo que los lectores móviles no intentan navegar automáticamente.
 
 El personal puede usar `/control-acceso` e ingresar con el mismo usuario y contraseña del panel admin. Luego puede validar el código manualmente o escanear el QR desde un navegador móvil compatible. Una entrada aprobada solo puede marcarse como utilizada una vez.
 

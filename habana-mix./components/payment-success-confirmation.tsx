@@ -36,7 +36,7 @@ export function PaymentSuccessConfirmation() {
         if (!response.ok) throw new Error('No confirmado')
         const data = await response.json()
         setTicket(data.ticket)
-        setQrDataUrl(await QRCode.toDataURL(`${window.location.origin}/entrada/${data.ticket.token}`, { width: 280, margin: 2 }))
+        setQrDataUrl(await QRCode.toDataURL(data.ticket.code, { width: 280, margin: 2 }))
         setState('confirmed')
       })
       .catch(() => setState('error'))
