@@ -1,72 +1,79 @@
+import { createHmac, timingSafeEqual } from 'node:crypto'
 import { NextResponse } from 'next/server'
 import { MercadoPagoConfig, Payment } from 'mercadopago'
 import { getSupabaseAdmin } from '@/lib/supabase-admin'
+import { finalizeApprovedPayment } from '@/lib/payment-finalization'
+
+function hasValidSignature(request: Request, paymentId: string) {
+  const secret = process.env.MERCADOPAGO_WEBHOOK_SECRET
+  const signature = request.headers.get('x-signature')
+  const requestId = request.headers.get('x-request-id')
+  const dataId = new URL(request.url).searchParams.get('data.id') || paymentId
+
+  if (!secret || !signature || !requestId || !dataId) return false
+
+  const values = signature.split(',').reduce<Record<string, string>>((result, part) => {
+    const [key, value] = part.trim().split('=', 2)
+    if (key && value) result[key] = value
+    return result
+  }, {})
+
+  if (!values.ts || !values.v1) return false
+
+  const manifest = `id:${dataId.toLowerCase()};request-id:${requestId};ts:${values.ts};`
+  const expected = createHmac('sha256', secret).update(manifest).digest('hex')
+  const expectedBuffer = Buffer.from(expected, 'utf8')
+  const receivedBuffer = Buffer.from(values.v1, 'utf8')
+
+  return receivedBuffer.length === expectedBuffer.length && timingSafeEqual(receivedBuffer, expectedBuffer)
+}
 
 export async function POST(req: Request) {
   try {
-    const supabaseAdmin = getSupabaseAdmin()
     const body = await req.json()
-    const paymentId = body?.data?.id || body?.id
+    const paymentId = String(body?.data?.id || body?.id || '')
     const type = body?.type || body?.topic
 
-    if (type !== 'payment' || !paymentId) {
-      return NextResponse.json({ received: true })
-    }
+    if (type !== 'payment' || !paymentId) return NextResponse.json({ received: true })
+    if (!hasValidSignature(req, paymentId)) return NextResponse.json({ error: 'Invalid webhook signature' }, { status: 401 })
 
     const accessToken = process.env.MERCADOPAGO_ACCESS_TOKEN
     if (!accessToken) throw new Error('Falta MERCADOPAGO_ACCESS_TOKEN')
 
-    const client = new MercadoPagoConfig({ accessToken })
-    const payment = await new Payment(client).get({ id: String(paymentId) })
-    const attendanceId = payment.external_reference
-
-    if (!attendanceId) return NextResponse.json({ received: true })
-
-    const statusMap: Record<string, string> = {
-      approved: 'approved',
-      rejected: 'rejected',
-      cancelled: 'rejected',
-      refunded: 'refunded',
-      charged_back: 'refunded',
-      pending: 'pending',
-      in_process: 'pending',
-      in_mediation: 'pending',
-    }
-    const paymentStatus = statusMap[payment.status || ''] || 'pending'
+    const supabaseAdmin = getSupabaseAdmin()
+    const payment = await new Payment(new MercadoPagoConfig({ accessToken })).get({ id: paymentId })
+    const orderId = payment.external_reference
+    if (!orderId) return NextResponse.json({ received: true })
 
     const { data: order, error: orderError } = await supabaseAdmin
       .from('payment_orders')
-      .select('id, amount, currency')
-      .eq('id', attendanceId)
+      .select('*')
+      .eq('id', orderId)
       .maybeSingle()
-
     if (orderError) throw orderError
     if (!order) return NextResponse.json({ received: true })
 
-    const amountMatches = Number(payment.transaction_amount) === Number(order.amount)
-    const currencyMatches = !order.currency || payment.currency_id === order.currency
-
-    if (paymentStatus === 'approved' && (!amountMatches || !currencyMatches)) {
-      console.error('Pago de Mercado Pago rechazado por importe o moneda inesperados', {
-        attendanceId,
-        transactionAmount: payment.transaction_amount,
-        expectedAmount: order.amount,
-        currency: payment.currency_id,
-        expectedCurrency: order.currency,
-      })
-      return NextResponse.json({ received: true })
+    const statusMap: Record<string, string> = {
+      approved: 'approved', rejected: 'rejected', cancelled: 'rejected', refunded: 'refunded',
+      charged_back: 'refunded', pending: 'pending', in_process: 'pending', in_mediation: 'pending',
     }
+    const paymentStatus = statusMap[payment.status || ''] || 'pending'
+    const amountMatches = Number(payment.transaction_amount) === Number(order.amount)
+    const currencyMatches = payment.currency_id === order.currency
 
-    const { error: updateError } = await supabaseAdmin
-      .from('payment_orders')
-      .update({
-        status: paymentStatus,
-        payment_id: String(payment.id),
-        approved_at: paymentStatus === 'approved' ? new Date().toISOString() : null,
-      })
-      .eq('id', order.id)
-
-    if (updateError) throw updateError
+    if (paymentStatus === 'approved') {
+      if (!amountMatches || !currencyMatches) {
+        console.error('Pago con importe o moneda inesperados', { paymentId, orderId })
+        return NextResponse.json({ received: true })
+      }
+      await finalizeApprovedPayment(supabaseAdmin, order, paymentId)
+    } else {
+      const { error: updateError } = await supabaseAdmin
+        .from('payment_orders')
+        .update({ status: paymentStatus, payment_id: paymentId, approved_at: null })
+        .eq('id', order.id)
+      if (updateError) throw updateError
+    }
 
     return NextResponse.json({ received: true })
   } catch (error) {

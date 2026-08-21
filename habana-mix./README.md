@@ -175,6 +175,7 @@ Agrega estas variables en `.env.local` y en el proveedor de deploy:
 
 ```env
 MERCADOPAGO_ACCESS_TOKEN=tu_access_token_de_mercado_pago
+MERCADOPAGO_WEBHOOK_SECRET=tu_clave_secreta_de_webhooks
 NEXT_PUBLIC_SITE_URL=https://tu-dominio.com
 SUPABASE_SERVICE_ROLE_KEY=tu_service_role_key
 ```
