@@ -51,6 +51,9 @@ function parseScanValue(raw: string) {
   if (trimmed.includes('/entrada/')) {
     return trimmed.split('/entrada/')[1]?.split(/[?#]/)[0] || ''
   }
+  if (trimmed.toUpperCase().startsWith('HM:')) {
+    return trimmed.slice(3).trim().toUpperCase()
+  }
   return trimmed.toUpperCase()
 }
 
@@ -80,6 +83,13 @@ export function AccessControl() {
       }
     } catch {
       localStorage.removeItem('admin_session')
+    }
+
+    try {
+      const storedScanResult = sessionStorage.getItem('access_scan_result')
+      if (storedScanResult) setResult(JSON.parse(storedScanResult) as ScanResult)
+    } catch {
+      sessionStorage.removeItem('access_scan_result')
     }
   }, [])
 
@@ -156,12 +166,15 @@ export function AccessControl() {
       if (!data) return
 
       if (data.error) {
-        setResult({ error: data.error, message: data.error })
+        const nextResult = { error: data.error, message: data.error }
+        setResult(nextResult)
+        sessionStorage.setItem('access_scan_result', JSON.stringify(nextResult))
         setValue('')
         return
       }
 
       setResult(data)
+      sessionStorage.setItem('access_scan_result', JSON.stringify(data))
       setValue('')
     } finally {
       setLoading(false)
@@ -180,11 +193,14 @@ export function AccessControl() {
       if (!data) return
 
       if (data.error) {
-        setResult({ error: data.error, message: data.error })
+        const nextResult = { error: data.error, message: data.error }
+        setResult(nextResult)
+        sessionStorage.setItem('access_scan_result', JSON.stringify(nextResult))
         return
       }
 
       setResult(data)
+      sessionStorage.setItem('access_scan_result', JSON.stringify(data))
       if (data.valid) setValue('')
     } finally {
       setLoading(false)

@@ -8,6 +8,9 @@ function parseTicketValue(raw: string) {
   if (trimmed.includes('/entrada/')) {
     return trimmed.split('/entrada/')[1]?.split(/[?#]/)[0] || ''
   }
+  if (trimmed.toUpperCase().startsWith('HM:')) {
+    return trimmed.slice(3).trim().toUpperCase()
+  }
   return trimmed
 }
 
