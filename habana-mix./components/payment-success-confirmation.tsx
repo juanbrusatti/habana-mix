@@ -1,9 +1,9 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import QRCode from 'qrcode'
-import { MessageCircle } from 'lucide-react'
+import { MessageCircle, Loader2 } from 'lucide-react'
 
 interface Ticket {
   token: string
@@ -13,10 +13,14 @@ interface Ticket {
   emailSent: boolean
 }
 
+const POLL_INTERVAL_MS = 2500
+const POLL_TIMEOUT_MS = 40_000
+
 export function PaymentSuccessConfirmation() {
   const [state, setState] = useState<'loading' | 'confirmed' | 'error'>('loading')
   const [ticket, setTicket] = useState<Ticket | null>(null)
   const [qrDataUrl, setQrDataUrl] = useState('')
+  const stopPolling = useRef(false)
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
@@ -28,30 +32,81 @@ export function PaymentSuccessConfirmation() {
       return
     }
 
-    fetch('/api/payments/confirm', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ payment_id: paymentId, external_reference: externalReference }),
-    })
-      .then(async (response) => {
-        if (!response.ok) throw new Error('No confirmado')
+    const startTime = Date.now()
+
+    async function poll() {
+      if (stopPolling.current) return
+
+      // Timeout: el webhook tardó demasiado — mostrar fallback de contacto
+      if (Date.now() - startTime >= POLL_TIMEOUT_MS) {
+        setState('error')
+        return
+      }
+
+      try {
+        const response = await fetch('/api/payments/confirm', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ payment_id: paymentId, external_reference: externalReference }),
+        })
+
+        if (!response.ok) {
+          // Error real del servidor → mostrar fallback
+          setState('error')
+          return
+        }
+
         const data = await response.json()
-        setTicket(data.ticket)
-        setQrDataUrl(await QRCode.toDataURL(`HM:${data.ticket.code}`, { width: 280, margin: 2 }))
-        setState('confirmed')
-      })
-      .catch(() => setState('error'))
+
+        if (data.status === 'confirmed' && data.ticket) {
+          if (stopPolling.current) return
+          const qr = await QRCode.toDataURL(`HM:${data.ticket.code}`, { width: 280, margin: 2 })
+          setTicket(data.ticket)
+          setQrDataUrl(qr)
+          setState('confirmed')
+          return
+        }
+
+        // Webhook aún no procesó el pago → reintentar
+        if (data.status === 'pending') {
+          setTimeout(poll, POLL_INTERVAL_MS)
+          return
+        }
+
+        // Respuesta inesperada → mostrar fallback
+        setState('error')
+      } catch {
+        // Error de red transitorio → reintentar si no superamos el timeout
+        if (Date.now() - startTime < POLL_TIMEOUT_MS) {
+          setTimeout(poll, POLL_INTERVAL_MS)
+        } else {
+          setState('error')
+        }
+      }
+    }
+
+    poll()
+
+    return () => {
+      stopPolling.current = true
+    }
   }, [])
 
   if (state === 'loading') {
-    return <p className="text-muted-foreground">Confirmando tu pago…</p>
+    return (
+      <div className="flex flex-col items-center gap-3 text-muted-foreground">
+        <Loader2 className="h-6 w-6 animate-spin" />
+        <p>Confirmando tu pago…</p>
+      </div>
+    )
   }
 
   if (state === 'error') {
     return (
       <div className="space-y-3">
         <p className="text-muted-foreground">
-          El pago fue recibido, pero todavía no pudimos confirmar la reserva. Contactanos con tu comprobante.
+          El pago fue recibido, pero todavía no pudimos confirmar la reserva. Contactanos con tu
+          comprobante.
         </p>
         <a
           href="https://wa.me/5493584178955?text=Hola,%20realicé%20un%20pago%20pero%20no%20me%20llegó%20mi%20código%20QR.%20¿Podrían%20ayudarme?"
@@ -75,7 +130,9 @@ export function PaymentSuccessConfirmation() {
         Ver y descargar entrada
       </Link>
       <p className="text-xs text-muted-foreground">
-        {ticket.emailSent ? 'También enviamos el enlace a tu email.' : 'Guardá este enlace para volver a descargarla.'}
+        {ticket.emailSent
+          ? 'También enviamos el enlace a tu email.'
+          : 'Guardá este enlace para volver a descargarla.'}
       </p>
       <a
         href="https://wa.me/5493584178955?text=Hola,%20realicé%20un%20pago%20pero%20no%20me%20llegó%20mi%20código%20QR.%20¿Podrían%20ayudarme?"
