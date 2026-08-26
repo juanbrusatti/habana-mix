@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { CalendarDays, MapPin, Ticket, MessageCircle } from 'lucide-react'
+import Link from 'next/link'
+import { CalendarDays, MapPin, Ticket, MessageCircle, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { getCardTheme } from '@/lib/card-theme'
 import type { AcademyEvent } from '@/lib/types'
@@ -251,43 +252,53 @@ export function EventCard({ event }: { event: AcademyEvent }) {
           )}
         </dl>
 
-        {event.is_free ? (
-          <>
-            <Button
-              className={cn(ctaClassName, t.accentBg)}
-              style={ctaStyle}
-              onClick={() => setOpen(true)}
-            >
-              {event.cta_label ?? 'Reservar lugar'}
-            </Button>
-            <FreeAttendanceDialog
-              eventId={event.id}
-              eventTitle={event.title}
-              open={open}
-              onOpenChange={setOpen}
-            />
-          </>
-        ) : (
-          <>
-            <Button
-              className={cn(ctaClassName, t.accentBg)}
-              style={ctaStyle}
-              onClick={() => setOpen(true)}
-              disabled={!event.price_amount}
-            >
-              {event.cta_label ?? 'Comprar entrada'}
-            </Button>
-            {event.price_amount ? (
-              <PaidAttendanceDialog
+        <div className="flex flex-col gap-2 pt-1">
+          {event.is_free ? (
+            <>
+              <Button
+                className={cn(ctaClassName, t.accentBg)}
+                style={ctaStyle}
+                onClick={() => setOpen(true)}
+              >
+                {event.cta_label ?? 'Reservar lugar'}
+              </Button>
+              <FreeAttendanceDialog
                 eventId={event.id}
                 eventTitle={event.title}
-                amount={event.price_amount}
                 open={open}
                 onOpenChange={setOpen}
               />
-            ) : null}
-          </>
-        )}
+            </>
+          ) : (
+            <>
+              <Button
+                className={cn(ctaClassName, t.accentBg)}
+                style={ctaStyle}
+                onClick={() => setOpen(true)}
+                disabled={!event.price_amount}
+              >
+                {event.cta_label ?? 'Comprar entrada'}
+              </Button>
+              {event.price_amount ? (
+                <PaidAttendanceDialog
+                  eventId={event.id}
+                  eventTitle={event.title}
+                  amount={event.price_amount}
+                  open={open}
+                  onOpenChange={setOpen}
+                />
+              ) : null}
+            </>
+          )}
+
+          <Link
+            href={`/evento/${event.slug || event.id}`}
+            className="inline-flex h-11 w-full items-center justify-center gap-1.5 rounded-full border border-border/80 bg-secondary/60 hover:bg-secondary text-foreground text-[14px] font-medium transition-all duration-200 active:scale-[0.98]"
+          >
+            <span>Ver detalles</span>
+            <ChevronRight className="w-4 h-4 text-muted-foreground" />
+          </Link>
+        </div>
         
         {/* Botón de contacto por WhatsApp para problemas con códigos QR */}
         <a
