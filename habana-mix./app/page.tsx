@@ -4,6 +4,7 @@ import { Hero } from '@/components/hero'
 import { LocationSection } from '@/components/location-section'
 import { SiteFooter } from '@/components/site-footer'
 import { SiteNav } from '@/components/site-nav'
+import { CompetitionsSection } from '@/components/competitions-section'
 
 export default async function HomePage() {
   return (
@@ -12,6 +13,7 @@ export default async function HomePage() {
       <Hero />
       <main>
         <EventsSection />
+        <CompetitionsSection />
         <LocationSection />
         <AboutSection />
       </main>
