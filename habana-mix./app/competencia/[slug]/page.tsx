@@ -42,8 +42,9 @@ async function getCompetition(slug: string): Promise<CompetitionWithDetails | nu
   }
 }
 
-export async function generateMetadata({ params }: { params: { slug: string } }) {
-  const competition = await getCompetition(params.slug)
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params
+  const competition = await getCompetition(slug)
   
   if (!competition) {
     return {
@@ -57,8 +58,9 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   }
 }
 
-export default async function CompetitionPage({ params }: { params: { slug: string } }) {
-  const competition = await getCompetition(params.slug)
+export default async function CompetitionPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params
+  const competition = await getCompetition(slug)
 
   if (!competition) {
     notFound()
