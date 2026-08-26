@@ -7,7 +7,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from 'sonner'
-import { Loader2, Plus, Trash2, Edit2, Calendar, MapPin } from 'lucide-react'
+import { Loader2, Plus, Trash2, Edit2, Calendar, MapPin, Layout, ImageIcon, ArrowLeft } from 'lucide-react'
+import { EventContentEditor } from './event-content-editor'
 
 function formatEventDateTime(startsAt: string, endsAt: string | null) {
   const startDate = new Date(startsAt)
@@ -115,6 +116,7 @@ export function EventsEditor() {
   const [events, setEvents] = useState<Event[]>([])
   const [loading, setLoading] = useState(true)
   const [editingEvent, setEditingEvent] = useState<Event | null>(null)
+  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
   const [showForm, setShowForm] = useState(false)
   const [formData, setFormData] = useState<EventFormData>(emptyEvent)
   const [saving, setSaving] = useState(false)
@@ -542,6 +544,33 @@ export function EventsEditor() {
     )
   }
 
+  if (selectedEvent) {
+    return (
+      <div className="space-y-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 justify-between pb-2 border-b">
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setSelectedEvent(null)}
+              className="w-full sm:w-auto"
+            >
+              <ArrowLeft className="w-4 h-4 mr-1.5" />
+              Volver a eventos
+            </Button>
+            <h3 className="text-lg sm:text-xl font-semibold truncate">
+              {selectedEvent.title}
+            </h3>
+          </div>
+          <span className="text-xs px-2.5 py-1 rounded-full bg-muted text-muted-foreground">
+            {selectedEvent.slug ? `/${selectedEvent.slug}` : ''}
+          </span>
+        </div>
+        <EventContentEditor eventId={selectedEvent.id} eventTitle={selectedEvent.title} />
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-4 sm:space-y-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -588,6 +617,16 @@ export function EventsEditor() {
                   </div>
                 </div>
                 <div className="flex gap-2 w-full sm:w-auto">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setSelectedEvent(event)}
+                    className="flex-1 sm:flex-none"
+                    title="Gestionar imágenes y detalles"
+                  >
+                    <Layout className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-0" />
+                    <span className="sm:hidden text-xs">Imágenes</span>
+                  </Button>
                   <Button size="sm" variant="outline" onClick={() => handleEdit(event)} className="flex-1 sm:flex-none">
                     <Edit2 className="w-3 h-3 sm:w-4 sm:h-4" />
                   </Button>

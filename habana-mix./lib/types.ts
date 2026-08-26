@@ -36,7 +36,20 @@ export interface AcademyEvent {
   created_at?: string
 }
 
+export interface EventSection {
+  id: string
+  event_id: string
+  title: string | null
+  description: string | null
+  image_url: string
+  sort_order: number
+  created_at?: string
+  updated_at?: string
+}
 
+export interface EventWithDetails extends AcademyEvent {
+  sections: EventSection[]
+}
 
 export interface Attendance {
   id: string
