@@ -23,6 +23,7 @@ interface ScanResult {
   message?: string
   error?: string
   attendee?: AttendeePreview
+  scannedAt?: number
 }
 
 interface Attendance {
@@ -44,18 +45,28 @@ interface AdminSession {
   login_time: string
 }
 
-/** Extrae el token del link del QR o deja el código alfanumérico. */
+/**
+ * Normaliza cualquier contenido de QR o código tipeado.
+ * Soporta los tres formatos que hay en la calle:
+ *  - QR viejos con link completo: https://…/entrada/<token>
+ *  - QR nuevos: HM:ABCDE
+ *  - Código de 5 caracteres tipeado a mano
+ * Los tokens conservan mayúsculas/minúsculas (se validan por hash); los códigos van en mayúsculas.
+ */
 function parseScanValue(raw: string) {
-  const trimmed = raw.trim()
+  const trimmed = String(raw || '').trim()
   if (!trimmed) return ''
   if (trimmed.includes('/entrada/')) {
     return trimmed.split('/entrada/')[1]?.split(/[?#]/)[0] || ''
   }
-  if (trimmed.toUpperCase().startsWith('HM:')) {
-    return trimmed.slice(3).trim().toUpperCase()
-  }
-  return trimmed.toUpperCase()
+  const withoutPrefix = trimmed.toUpperCase().startsWith('HM:') ? trimmed.slice(3).trim() : trimmed
+  return /^[a-z0-9]{5}$/i.test(withoutPrefix) ? withoutPrefix.toUpperCase() : withoutPrefix
 }
+
+/** Ventana en la que se ignora el mismo QR para no re-consultarlo mientras sigue frente a la cámara. */
+const REPEAT_SCAN_MS = 6000
+/** Pausa mínima entre dos lecturas distintas. */
+const SCAN_COOLDOWN_MS = 800
 
 export function AccessControl() {
   const [session, setSession] = useState<AdminSession | null>(null)
@@ -67,11 +78,15 @@ export function AccessControl() {
   const [result, setResult] = useState<ScanResult | null>(null)
   const [loading, setLoading] = useState(false)
   const [cameraOpen, setCameraOpen] = useState(false)
+  const [cameraReady, setCameraReady] = useState(false)
   const [cameraError, setCameraError] = useState('')
   const [search, setSearch] = useState('')
   const [attendances, setAttendances] = useState<Attendance[]>([])
   const scannerRef = useRef<Html5Qrcode | null>(null)
   const handlingScanRef = useRef(false)
+  const lastScanRef = useRef<{ value: string; at: number }>({ value: '', at: 0 })
+  const handleScanRef = useRef<(rawValue: string) => Promise<void>>(async () => undefined)
+  const audioContextRef = useRef<AudioContext | null>(null)
 
   useEffect(() => {
     try {
@@ -87,9 +102,44 @@ export function AccessControl() {
 
     try {
       const storedScanResult = sessionStorage.getItem('access_scan_result')
-      if (storedScanResult) setResult(JSON.parse(storedScanResult) as ScanResult)
+      if (storedScanResult) {
+        const parsed = JSON.parse(storedScanResult) as ScanResult
+        // Solo restauramos un resultado reciente: un cartel viejo de "puede ingresar" confunde al personal.
+        if (parsed.scannedAt && Date.now() - parsed.scannedAt < 60_000) setResult(parsed)
+        else sessionStorage.removeItem('access_scan_result')
+      }
     } catch {
       sessionStorage.removeItem('access_scan_result')
+    }
+  }, [])
+
+  /** Aviso sonoro + vibración para que el personal no dependa de mirar la pantalla. */
+  const notify = useCallback((ok: boolean) => {
+    try {
+      const AudioCtx =
+        window.AudioContext || (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext
+      if (AudioCtx) {
+        if (!audioContextRef.current) audioContextRef.current = new AudioCtx()
+        const context = audioContextRef.current
+        if (context.state === 'suspended') void context.resume()
+        const oscillator = context.createOscillator()
+        const gain = context.createGain()
+        oscillator.type = 'sine'
+        oscillator.frequency.value = ok ? 880 : 220
+        gain.gain.value = 0.12
+        oscillator.connect(gain)
+        gain.connect(context.destination)
+        oscillator.start()
+        oscillator.stop(context.currentTime + (ok ? 0.16 : 0.45))
+      }
+    } catch {
+      // sin audio disponible: no es crítico
+    }
+
+    try {
+      navigator.vibrate?.(ok ? 80 : [90, 70, 90])
+    } catch {
+      // sin vibración disponible
     }
   }, [])
 
@@ -154,54 +204,82 @@ export function AccessControl() {
     return data as ScanResult & { error?: string }
   }, [session])
 
-  /** Escanea y valida en el mismo control, sin abrir el contenido del QR. */
+  const showResult = useCallback((data: ScanResult) => {
+    const nextResult = { ...data, scannedAt: Date.now() }
+    setResult(nextResult)
+    try {
+      sessionStorage.setItem('access_scan_result', JSON.stringify(nextResult))
+    } catch {
+      // sessionStorage lleno o bloqueado: el cartel igual se muestra en pantalla
+    }
+    notify(Boolean(data.valid))
+  }, [notify])
+
+  /**
+   * Escanea y valida en la misma pantalla: la cámara nunca se cierra ni se navega a otra página.
+   */
   const handleScan = useCallback(async (rawValue: string) => {
     if (!session || handlingScanRef.current) return
+
+    const parsedValue = parseScanValue(rawValue)
+    if (!parsedValue) return
+
+    // Mismo QR todavía frente a la cámara: mantenemos el cartel y no volvemos a consultar.
+    const now = Date.now()
+    if (parsedValue === lastScanRef.current.value && now - lastScanRef.current.at < REPEAT_SCAN_MS) return
+    lastScanRef.current = { value: parsedValue, at: now }
+
     handlingScanRef.current = true
     setLoading(true)
-    setResult(null)
 
     try {
       const data = await requestTicket(rawValue, true)
       if (!data) return
 
       if (data.error) {
-        const nextResult = { error: data.error, message: data.error }
-        setResult(nextResult)
-        sessionStorage.setItem('access_scan_result', JSON.stringify(nextResult))
+        showResult({ error: data.error, message: data.error })
         setValue('')
         return
       }
 
-      setResult(data)
-      sessionStorage.setItem('access_scan_result', JSON.stringify(data))
+      showResult(data)
       setValue('')
+    } catch (error) {
+      console.error('Error validando entrada escaneada:', error)
+      showResult({ error: 'Sin conexión. Reintentá el escaneo.', message: 'Sin conexión. Reintentá el escaneo.' })
+      // Un fallo de red no debe bloquear el reintento del mismo QR.
+      lastScanRef.current = { value: '', at: 0 }
     } finally {
       setLoading(false)
-      handlingScanRef.current = false
+      setTimeout(() => {
+        handlingScanRef.current = false
+      }, SCAN_COOLDOWN_MS)
     }
-  }, [requestTicket, session])
+  }, [requestTicket, session, showResult])
 
-  /** Botón Validar: recién ahí marca la entrada como utilizada. */
+  useEffect(() => {
+    handleScanRef.current = handleScan
+  }, [handleScan])
+
+  /** Botón Validar: valida el código tipeado a mano. */
   const handleValidate = async () => {
-    if (!value.trim() || !session) return
+    if (!value.trim() || !session || loading) return
     setLoading(true)
-    setResult(null)
 
     try {
       const data = await requestTicket(value, true)
       if (!data) return
 
       if (data.error) {
-        const nextResult = { error: data.error, message: data.error }
-        setResult(nextResult)
-        sessionStorage.setItem('access_scan_result', JSON.stringify(nextResult))
+        showResult({ error: data.error, message: data.error })
         return
       }
 
-      setResult(data)
-      sessionStorage.setItem('access_scan_result', JSON.stringify(data))
+      showResult(data)
       if (data.valid) setValue('')
+    } catch (error) {
+      console.error('Error validando entrada:', error)
+      showResult({ error: 'Sin conexión. Reintentá.', message: 'Sin conexión. Reintentá.' })
     } finally {
       setLoading(false)
     }
@@ -210,6 +288,7 @@ export function AccessControl() {
   useEffect(() => {
     if (!session || !cameraOpen) return
 
+    let cancelled = false
     const scanner = new Html5Qrcode('ticket-qr-reader')
     scannerRef.current = scanner
 
@@ -217,32 +296,49 @@ export function AccessControl() {
       try {
         await scanner.start(
           { facingMode: 'environment' },
-          { fps: 10, qrbox: { width: 240, height: 240 } },
-          async (decodedText) => {
-            if (handlingScanRef.current) return
-            try {
-              await scanner.stop()
-            } catch {
-              // ya detenido
-            }
-            setCameraOpen(false)
-            await handleScan(decodedText)
+          {
+            fps: 10,
+            qrbox: (viewfinderWidth: number, viewfinderHeight: number) => {
+              const size = Math.floor(Math.min(viewfinderWidth, viewfinderHeight) * 0.75)
+              return { width: size, height: size }
+            },
+          },
+          (decodedText) => {
+            // La cámara sigue corriendo: se escanea uno atrás de otro sin tocar nada.
+            void handleScanRef.current(decodedText)
           },
           () => undefined,
         )
-      } catch {
-        setCameraError('No se pudo abrir la cámara. Revisá los permisos de HTTPS y del navegador.')
+        if (cancelled) {
+          await scanner.stop().catch(() => undefined)
+          return
+        }
+        setCameraReady(true)
+      } catch (error) {
+        console.error('Error abriendo la cámara:', error)
+        if (!cancelled) {
+          setCameraReady(false)
+          setCameraError(
+            'No se pudo abrir la cámara. Verificá que el navegador tenga permiso de cámara y que la página esté en HTTPS. Podés seguir validando con el código de 5 caracteres.',
+          )
+        }
       }
     }
 
-    start()
+    void start()
 
     return () => {
-      scanner.stop().catch(() => undefined)
-      scanner.clear()
+      cancelled = true
+      setCameraReady(false)
+      const activeScanner = scannerRef.current
       scannerRef.current = null
+      if (!activeScanner) return
+      activeScanner
+        .stop()
+        .then(() => activeScanner.clear())
+        .catch(() => undefined)
     }
-  }, [cameraOpen, session, handleScan])
+  }, [cameraOpen, session])
 
   useEffect(() => {
     if (!session) return
@@ -299,13 +395,16 @@ export function AccessControl() {
     )
   }
 
-  const resultTone = result?.valid
-    ? 'border-green-500 bg-green-500/5'
-    : result?.pendingConfirm
-      ? 'border-amber-500 bg-amber-500/5'
-      : result?.alreadyUsed || result?.error
-        ? 'border-red-500 bg-red-500/5'
-        : 'border-border'
+  const isAuthorized = Boolean(result?.valid)
+  const isRejected = Boolean(result && !result.valid)
+  const bannerTone = isAuthorized
+    ? 'border-green-600 bg-green-600 text-white'
+    : 'border-red-600 bg-red-600 text-white'
+  const bannerTitle = isAuthorized
+    ? '✓ PUEDE INGRESAR'
+    : result?.alreadyUsed
+      ? '✗ ENTRADA YA UTILIZADA'
+      : '✗ ENTRADA NO VÁLIDA'
 
   return (
     <main className="mx-auto min-h-screen max-w-xl space-y-6 px-4 py-8 sm:px-6">
@@ -313,23 +412,71 @@ export function AccessControl() {
         <p className="text-sm font-semibold uppercase text-primary">Control de acceso</p>
         <h1 className="font-serif text-4xl font-semibold">Validar entrada</h1>
         <p className="mt-2 text-muted-foreground">
-          Escaneá el QR para cargar el código, revisá los datos y confirmá con Validar entrada.
+          Abrí la cámara una vez y escaneá un QR atrás del otro: cada lectura autoriza el ingreso y muestra el cartel
+          sin salir de esta pantalla.
         </p>
       </div>
 
-      <Button
-        type="button"
-        className="w-full sm:w-auto"
-        onClick={() => {
-          setCameraError('')
-          setCameraOpen(true)
-        }}
-      >
-        Abrir cámara
-      </Button>
+      {result && (
+        <div className={`rounded-2xl border-2 p-5 ${bannerTone}`} role="status" aria-live="assertive">
+          <p className="text-2xl font-bold tracking-tight">{bannerTitle}</p>
+          {result.attendee && (
+            <p className="mt-2 text-lg font-semibold">
+              {result.attendee.name} {result.attendee.surname}
+            </p>
+          )}
+          {result.attendee && (
+            <p className="text-sm opacity-90">
+              {result.attendee.event_title}
+              {result.attendee.ticket_code ? ` · ${result.attendee.ticket_code}` : ''}
+            </p>
+          )}
+          {isRejected && (
+            <p className="mt-2 text-sm opacity-90">{result.message || result.error || 'Entrada inválida'}</p>
+          )}
+        </div>
+      )}
+
+      {loading && <p className="text-sm text-muted-foreground">Validando…</p>}
+
+      <div className="flex flex-wrap gap-2">
+        <Button
+          type="button"
+          className="w-full sm:w-auto"
+          onClick={() => {
+            setCameraError('')
+            setCameraOpen((open) => !open)
+          }}
+          variant={cameraOpen ? 'outline' : 'default'}
+        >
+          {cameraOpen ? 'Cerrar cámara' : 'Abrir cámara'}
+        </Button>
+        {result && (
+          <Button
+            type="button"
+            variant="ghost"
+            className="w-full sm:w-auto"
+            onClick={() => {
+              setResult(null)
+              try {
+                sessionStorage.removeItem('access_scan_result')
+              } catch {
+                // nada que limpiar
+              }
+            }}
+          >
+            Limpiar cartel
+          </Button>
+        )}
+      </div>
 
       {cameraOpen && (
-        <div id="ticket-qr-reader" className="w-full overflow-hidden rounded-xl border bg-black" />
+        <div className="space-y-2">
+          <div id="ticket-qr-reader" className="w-full overflow-hidden rounded-xl border bg-black" />
+          <p className="text-xs text-muted-foreground">
+            {cameraReady ? 'Cámara activa: apuntá al QR de cada entrada.' : 'Abriendo cámara…'}
+          </p>
+        </div>
       )}
       {cameraError && <p className="text-sm text-amber-600">{cameraError}</p>}
 
@@ -339,9 +486,9 @@ export function AccessControl() {
           value={value}
           onChange={(event) => {
             const next = event.target.value.trim()
-            // Si pegan el link del QR, solo lo resolvemos a código (sin marcar usada)
+            // Si pegan el link del QR viejo, lo resolvemos y validamos igual.
             if (next.includes('/entrada/')) {
-              handleScan(next)
+              void handleScan(next)
               return
             }
             setValue(next.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 5))
@@ -349,7 +496,7 @@ export function AccessControl() {
           onKeyDown={(event) => {
             if (event.key === 'Enter') {
               event.preventDefault()
-              handleValidate()
+              void handleValidate()
             }
           }}
           maxLength={5}
@@ -362,18 +509,6 @@ export function AccessControl() {
           {loading ? '…' : 'Validar entrada'}
         </Button>
       </div>
-
-      {result && (
-        <div className={`rounded-xl border p-5 ${resultTone}`}>
-          <p className="font-semibold">{result.message || result.error || 'Entrada inválida'}</p>
-          {result.attendee && (
-            <p className="mt-2 text-sm">
-              {result.attendee.name} {result.attendee.surname} · {result.attendee.event_title}
-              {result.attendee.ticket_code ? ` · ${result.attendee.ticket_code}` : ''}
-            </p>
-          )}
-        </div>
-      )}
 
       <section className="space-y-3">
         <div>
