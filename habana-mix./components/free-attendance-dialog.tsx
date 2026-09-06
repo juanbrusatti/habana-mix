@@ -1,59 +1,64 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { CalendarDays, MapPin } from 'lucide-react'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { toast } from 'sonner'
+import {
+  AttendanceFields,
+  emptyAttendanceForm,
+  fieldErrorFromMessage,
+  type AttendanceFieldError,
+  type AttendanceForm,
+} from '@/components/attendance-fields'
+import { formatDateTimeRange } from '@/lib/event-format'
 
 export function FreeAttendanceDialog({
   eventId,
   eventTitle,
+  eventDate,
+  eventLocation,
   open,
   onOpenChange,
 }: {
   eventId: string
   eventTitle: string
+  eventDate?: string
+  eventLocation?: string | null
   open: boolean
-  onOpenChange: (v: boolean) => void
+  onOpenChange: (value: boolean) => void
 }) {
   const [submitting, setSubmitting] = useState(false)
-  const [fieldError, setFieldError] = useState<{ dni?: string; phone?: string; email?: string }>({})
-  const [form, setForm] = useState({ name: '', surname: '', dni: '', phone: '', email: '' })
+  const [fieldError, setFieldError] = useState<AttendanceFieldError>({})
+  const [form, setForm] = useState<AttendanceForm>(emptyAttendanceForm)
 
   useEffect(() => {
     if (!open) {
-      setForm({ name: '', surname: '', dni: '', phone: '', email: '' })
+      setForm(emptyAttendanceForm)
       setFieldError({})
     }
   }, [open, eventId])
 
-  const clearFieldError = (field: 'dni' | 'phone' | 'email') => {
-    setFieldError((current) => ({ ...current, [field]: undefined }))
+  const set = (field: keyof AttendanceForm, value: string) => {
+    setForm((current) => ({ ...current, [field]: value }))
+    if (field === 'dni' || field === 'phone' || field === 'email') {
+      setFieldError((current) => ({ ...current, [field]: undefined }))
+    }
   }
 
-  const set = (k: keyof typeof form) => (v: string) => {
-    setForm((f) => ({ ...f, [k]: v }))
+  // --- Registro de asistencia gratuita: misma llamada que antes. ---
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault()
 
-    if (k === 'dni') clearFieldError('dni')
-    if (k === 'phone') clearFieldError('phone')
-    if (k === 'email') clearFieldError('email')
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    const keys: (keyof typeof form)[] = ['name', 'surname', 'dni', 'phone', 'email']
-    for (const k of keys) {
-      if (!form[k].trim()) {
-        toast.error('Completa todos los campos obligatorios')
-        return
-      }
+    if (Object.values(form).some((value) => !value.trim())) {
+      toast.error('Completá todos los campos')
+      return
     }
 
     setSubmitting(true)
     try {
-      const res = await fetch('/api/attendances', {
+      const response = await fetch('/api/attendances', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -63,92 +68,78 @@ export function FreeAttendanceDialog({
         }),
       })
 
-      const json = await res.json()
-      if (!res.ok) {
+      const json = await response.json()
+      if (!response.ok) {
         const message = String(json?.error || 'Error guardando asistencia')
-
-        if (message.toLowerCase().includes('dni')) {
-          setFieldError((current) => ({ ...current, dni: message }))
-        }
-        if (message.toLowerCase().includes('tel')) {
-          setFieldError((current) => ({ ...current, phone: message }))
-        }
-        if (message.toLowerCase().includes('email')) {
-          setFieldError((current) => ({ ...current, email: message }))
-        }
-
+        setFieldError((current) => ({ ...current, ...fieldErrorFromMessage(message) }))
         throw new Error(message)
       }
 
-      toast.success('Reserva registrada. Gracias!')
+      toast.success('¡Listo! Tu lugar quedó reservado.')
       onOpenChange(false)
-    } catch (err: any) {
-      toast.error(err?.message || 'Error al enviar')
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Error al enviar')
     } finally {
       setSubmitting(false)
     }
   }
+  // --- fin ---
 
   if (!eventId) return null
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
-        <div className="p-4">
-          <DialogHeader>
-            <p className="text-sm text-primary font-semibold uppercase">Reserva gratuita</p>
-            <DialogTitle className="font-serif text-xl">{eventTitle}</DialogTitle>
+      <DialogContent className="max-h-[92svh] max-w-md overflow-y-auto p-0">
+        <div className="p-5 sm:p-6">
+          <DialogHeader className="text-left">
+            <p className="text-primary text-[11px] font-semibold tracking-[0.2em] uppercase">
+              Reserva gratuita
+            </p>
+            <DialogTitle className="font-serif text-2xl leading-tight">{eventTitle}</DialogTitle>
           </DialogHeader>
 
-          <form onSubmit={handleSubmit} className="mt-4 space-y-3">
-            <div>
-              <Label>Nombre</Label>
-              <Input required value={form.name} onChange={(e) => set('name')(e.target.value)} />
-            </div>
-            <div>
-              <Label>Apellido</Label>
-              <Input required value={form.surname} onChange={(e) => set('surname')(e.target.value)} />
-            </div>
-            <div>
-              <Label>DNI</Label>
-              <Input
-                required
-                value={form.dni}
-                onChange={(e) => set('dni')(e.target.value)}
-                aria-invalid={Boolean(fieldError.dni)}
-              />
-              {fieldError.dni && <p className="mt-1 text-xs text-red-500">{fieldError.dni}</p>}
-            </div>
-            <div>
-              <Label>Teléfono</Label>
-              <Input
-                required
-                value={form.phone}
-                onChange={(e) => set('phone')(e.target.value)}
-                aria-invalid={Boolean(fieldError.phone)}
-              />
-              {fieldError.phone && <p className="mt-1 text-xs text-red-500">{fieldError.phone}</p>}
-            </div>
-            <div>
-              <Label>Email</Label>
-              <Input
-                required
-                type="email"
-                value={form.email}
-                onChange={(e) => set('email')(e.target.value)}
-                aria-invalid={Boolean(fieldError.email)}
-              />
-              {fieldError.email && <p className="mt-1 text-xs text-red-500">{fieldError.email}</p>}
-            </div>
+          {(eventDate || eventLocation) && (
+            <ul className="text-muted-foreground mt-3 space-y-1.5 text-sm">
+              {eventDate && (
+                <li className="flex items-center gap-2">
+                  <CalendarDays className="text-primary h-4 w-4 shrink-0" />
+                  <span className="first-letter:uppercase">{formatDateTimeRange(eventDate, null)}</span>
+                </li>
+              )}
+              {eventLocation && (
+                <li className="flex items-center gap-2">
+                  <MapPin className="text-primary h-4 w-4 shrink-0" />
+                  <span>{eventLocation}</span>
+                </li>
+              )}
+            </ul>
+          )}
 
-            <div className="flex gap-2 mt-2">
-              <Button type="submit" disabled={submitting}>
-                {submitting ? 'Enviando…' : 'Confirmar reserva'}
-              </Button>
-              <Button variant="outline" type="button" onClick={() => onOpenChange(false)}>
-                Cancelar
-              </Button>
-            </div>
+          <form onSubmit={handleSubmit} className="mt-5">
+            <AttendanceFields
+              form={form}
+              errors={fieldError}
+              disabled={submitting}
+              onChange={set}
+            />
+
+            <Button
+              type="submit"
+              disabled={submitting}
+              className="bg-primary text-primary-foreground hover:bg-primary/90 mt-5 h-13 w-full rounded-full text-[15px] font-semibold transition-transform duration-200 active:scale-[0.98]"
+            >
+              {submitting ? 'Enviando…' : 'Confirmar mi lugar'}
+            </Button>
+
+            <Button
+              variant="ghost"
+              type="button"
+              disabled={submitting}
+              onClick={() => onOpenChange(false)}
+              className="text-muted-foreground mt-1 h-11 w-full rounded-full"
+            >
+              Cancelar
+            </Button>
           </form>
         </div>
       </DialogContent>

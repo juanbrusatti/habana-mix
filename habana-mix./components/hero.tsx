@@ -1,226 +1,185 @@
-'use client'
+import Link from 'next/link'
+import { ArrowRight, CalendarDays, ChevronDown } from 'lucide-react'
+import { BuyButton } from '@/components/buy-button'
+import { HeroMotion } from '@/components/hero-motion'
+import { SmartImage } from '@/components/smart-image'
+import { eventHref, formatShortDateTime, isPastEvent, resolvePrice } from '@/lib/event-format'
+import type { HeroConfig } from '@/lib/site-content'
+import type { AcademyEvent } from '@/lib/types'
 
-import { useEffect, useRef, useState } from 'react'
-import { ChevronDown } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { supabase } from '@/lib/supabase'
-
-interface HeroConfig {
-  badge_text: string
-  title: string
-  subtitle: string
-  image_url: string
-  title_color: string
-  subtitle_color: string
-  badge_color: string
-  badge_text_color: string
-  title_size: string
-  subtitle_size: string
+/** Tamaños de título permitidos desde el admin, acotados a una escala legible. */
+const titleSizes: Record<string, string> = {
+  'text-6xl': 'text-5xl sm:text-6xl md:text-7xl',
+  'text-7xl': 'text-5xl sm:text-7xl md:text-8xl',
+  'text-8xl': 'text-6xl sm:text-8xl md:text-9xl',
+  'text-9xl': 'text-6xl sm:text-8xl md:text-9xl',
 }
 
-const defaultConfig: HeroConfig = {
-  badge_text: 'Academia de baile cubano',
-  title: 'Habana Mix',
-  subtitle: 'Donde el sabor de La Habana se aprende bailando. Salsa cubana, timba, bachata y rueda de casino.',
-  image_url: '/images/hero-habana.png',
-  title_color: '#ffffff',
-  subtitle_color: 'rgba(255,255,255,0.7)',
-  badge_color: 'rgba(255,255,255,0.1)',
-  badge_text_color: '#ffffff',
-  title_size: 'text-9xl',
-  subtitle_size: 'text-lg'
+const subtitleSizes: Record<string, string> = {
+  'text-sm': 'text-sm sm:text-base',
+  'text-base': 'text-base sm:text-lg',
+  'text-lg': 'text-base sm:text-lg',
+  'text-xl': 'text-lg sm:text-xl',
 }
 
 /**
- * Hero con parallax multicapa.
+ * Hero. Server Component: la imagen viene en el HTML y el navegador la empieza a
+ * bajar de inmediato (antes había que esperar a que ejecutara JS y consultara
+ * Supabase para recién descubrir la URL).
  *
- * Para usar tu video: dejá el mp4 en /public/videos/habana.mp4 y descomentá el
- * bloque <video>. La imagen queda automáticamente como poster/fallback.
+ * Además baja de 100svh a 88svh y trae el próximo evento a la primera pantalla:
+ * quien entra a comprar ya ve qué hay, cuándo y cuánto sale, sin scrollear.
  */
-export function Hero() {
-  const sectionRef = useRef<HTMLElement>(null)
-  const [progress, setProgress] = useState(0)
-  const [config, setConfig] = useState<HeroConfig>(defaultConfig)
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    loadConfig()
-  }, [])
-
-  const loadConfig = async () => {
-    try {
-      const { data, error } = await supabase.rpc('get_hero_config')
-      if (error) {
-        console.error('Error cargando configuración del hero:', error)
-        return
-      }
-      if (data) {
-        setConfig(data as HeroConfig)
-      }
-    } catch (error) {
-      console.error('Error cargando configuración:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  useEffect(() => {
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
-
-    let frame = 0
-    const onScroll = () => {
-      if (frame) return
-      frame = requestAnimationFrame(() => {
-        frame = 0
-        const h = window.innerHeight || 1
-        // 0 arriba del todo -> 1 cuando el hero salió de pantalla
-        setProgress(Math.min(Math.max(window.scrollY / h, 0), 1))
-      })
-    }
-
-    onScroll()
-    window.addEventListener('scroll', onScroll, { passive: true })
-    return () => {
-      window.removeEventListener('scroll', onScroll)
-      if (frame) cancelAnimationFrame(frame)
-    }
-  }, [])
-
-  const scrollToNext = () => {
-    document
-      .getElementById('eventos')
-      ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-  }
-
-  if (loading) {
-    return (
-      <header className="relative isolate flex h-[100svh] min-h-[560px] w-full items-end overflow-hidden">
-        <div className="absolute inset-0 -z-20 bg-muted" />
-        <div className="relative z-10 w-full px-4 pb-16 sm:px-6 md:pb-24">
-          <div className="mx-auto flex max-w-5xl flex-col items-center px-2 text-center sm:px-4">
-            <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-          </div>
-        </div>
-      </header>
-    )
-  }
-
-  const getTailwindSize = (size: string) => {
-    const sizeMap: Record<string, string> = {
-      'text-6xl': 'text-6xl',
-      'text-7xl': 'text-7xl', 
-      'text-8xl': 'text-8xl',
-      'text-9xl': 'text-9xl',
-      'text-sm': 'text-sm',
-      'text-base': 'text-base',
-      'text-lg': 'text-lg',
-      'text-xl': 'text-xl'
-    }
-    return sizeMap[size] || size
-  }
+export function Hero({
+  config,
+  nextEvent,
+}: {
+  config: HeroConfig
+  nextEvent: AcademyEvent | null
+}) {
+  const titleClass = titleSizes[config.title_size] || titleSizes['text-6xl']
+  const subtitleClass = subtitleSizes[config.subtitle_size] || subtitleSizes['text-base']
+  const upcoming = nextEvent && !isPastEvent(nextEvent) ? nextEvent : null
+  const price = upcoming ? resolvePrice(upcoming) : null
 
   return (
     <header
-      ref={sectionRef}
-      className="relative isolate flex h-[100svh] min-h-[560px] w-full items-end overflow-hidden"
+      data-hero
+      className="relative isolate flex min-h-[88svh] w-full flex-col justify-end overflow-hidden"
     >
-      {/* Capa 1: media de fondo — se mueve más lento (parallax real) */}
-      <div
-        className="absolute inset-0 -z-20 will-change-transform"
-        style={{
-          transform: `translate3d(0, ${progress * 22}%, 0) scale(${1 + progress * 0.06})`,
-        }}
-      >
-        {/*
-        <video
-          className="h-full w-full object-cover"
-          autoPlay muted loop playsInline preload="metadata"
-          poster="/images/hero-habana.png"
-        >
-          <source src="/videos/habana.mp4" type="video/mp4" />
-        </video>
-        */}
-        <img
-          src={config.image_url}
-          alt="Pareja bailando salsa cubana en una calle de La Habana de noche"
-          className="animate-ken-burns h-full w-full object-cover object-center"
-          fetchPriority="high"
-        />
+      <HeroMotion />
+
+      <div className="hero-parallax-bg absolute inset-0 -z-20">
+        <div className="bg-muted absolute inset-0">
+          <SmartImage
+            src={config.image_url}
+            alt="Habana Mix"
+            priority
+            sizes="100vw"
+            className="animate-ken-burns object-cover object-center"
+          />
+        </div>
       </div>
 
-      {/* Capa 2: viñeta y degradados para legibilidad - más sutil y cinematográfico */}
       <div
         aria-hidden
-        className="absolute inset-0 -z-10 bg-gradient-to-b from-background/60 via-background/20 to-background/90"
+        className="from-background/70 via-background/25 to-background absolute inset-0 -z-10 bg-gradient-to-b"
       />
       <div
         aria-hidden
-        className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_50%_0%,transparent_0%,oklch(0.18_0.02_35/0.7)_70%)]"
+        className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_50%_-10%,transparent_20%,oklch(0.155_0.016_45/0.75)_75%)]"
       />
 
-      {/* Capa 3: contenido — se mueve más rápido y se desvanece */}
-      <div
-        className="relative z-10 w-full px-4 pb-16 will-change-transform sm:px-6 md:pb-24"
-        style={{
-          transform: `translate3d(0, ${progress * -46}px, 0)`,
-          opacity: 1 - progress * 1.25,
-        }}
-      >
-        <div className="mx-auto flex max-w-5xl flex-col items-center px-2 text-center sm:px-4">
+      <div className="hero-parallax-content relative z-10 w-full px-4 pt-24 pb-6 sm:px-6">
+        <div className="mx-auto flex max-w-5xl flex-col items-center text-center">
           <span
-            className="mb-6 inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-[10px] font-medium tracking-[0.25em] uppercase backdrop-blur-md"
+            className="animate-enter-up mb-5 inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-[10px] font-medium tracking-[0.25em] uppercase backdrop-blur-md"
             style={{
               backgroundColor: config.badge_color,
-              borderColor: config.badge_text_color + '25',
-              color: config.badge_text_color
+              borderColor: `${config.badge_text_color}25`,
+              color: config.badge_text_color,
+              animationDelay: '60ms',
             }}
           >
             {config.badge_text}
           </span>
 
           <h1
-            className={`font-serif leading-[0.92] font-semibold tracking-tight text-balance text-5xl sm:text-6xl md:text-7xl lg:text-8xl ${getTailwindSize(config.title_size)}`}
-            style={{ color: config.title_color }}
+            className={`animate-enter-up font-serif leading-[0.92] font-semibold tracking-tight text-balance ${titleClass}`}
+            style={{ color: config.title_color, animationDelay: '120ms' }}
           >
             {config.title}
           </h1>
 
           <p
-            className={`mt-4 max-w-md leading-relaxed text-pretty text-sm sm:mt-5 sm:max-w-lg sm:text-base ${getTailwindSize(config.subtitle_size)}`}
-            style={{ color: config.subtitle_color }}
+            className={`animate-enter-up mt-4 max-w-xl leading-relaxed text-pretty ${subtitleClass}`}
+            style={{ color: config.subtitle_color, animationDelay: '200ms' }}
           >
             {config.subtitle}
           </p>
-
-          <div className="mt-8 flex w-full justify-center sm:mt-10">
-            <Button
-              size="lg"
-              onClick={() =>
-                document
-                  .getElementById('eventos')
-                  ?.scrollIntoView({ behavior: 'smooth' })
-              }
-              className="bg-primary text-primary-foreground hover:bg-primary/85 h-13 w-full max-w-xs rounded-full px-6 text-[15px] font-semibold shadow-none transition-all duration-300 active:scale-[0.97] sm:h-14 sm:w-auto sm:px-10"
-            >
-              Ver eventos
-            </Button>
-          </div>
         </div>
       </div>
 
-      {/* Indicador de scroll */}
-      <button
-        type="button"
-        onClick={scrollToNext}
-        aria-label="Bajar a la sección de eventos"
-        className="text-foreground/50 hover:text-foreground focus-visible:ring-ring absolute bottom-1 left-1/2 z-20 flex -translate-x-1/2 flex-col items-center gap-1.5 rounded-full p-2 transition-colors focus-visible:ring-2 focus-visible:outline-none sm:bottom-5"
-        style={{ opacity: 1 - progress * 2 }}
-      >
-        <span className="text-[10px] font-medium tracking-[0.3em] uppercase">
-          Desliza
-        </span>
-        <ChevronDown className="animate-scroll-hint h-5 w-5" />
-      </button>
+      {/* Próximo evento, ya en la primera pantalla. */}
+      <div className="relative z-10 w-full px-4 pb-10 sm:px-6 sm:pb-14">
+        <div className="mx-auto max-w-3xl">
+          {upcoming ? (
+            <div
+              className="animate-enter-up border-border/60 bg-background/75 rounded-3xl border p-3 shadow-[0_20px_60px_-30px_oklch(0_0_0/0.95)] backdrop-blur-xl sm:p-4"
+              style={{ animationDelay: '280ms' }}
+            >
+              <div className="flex items-center gap-3 sm:gap-4">
+                <Link
+                  href={eventHref(upcoming)}
+                  className="relative hidden h-20 w-20 shrink-0 overflow-hidden rounded-2xl sm:block"
+                  aria-hidden
+                  tabIndex={-1}
+                >
+                  {upcoming.image_url && (
+                    <SmartImage
+                      src={upcoming.image_url}
+                      alt=""
+                      sizes="80px"
+                      className="object-cover"
+                    />
+                  )}
+                </Link>
+
+                <div className="min-w-0 flex-1">
+                  <p className="text-primary flex items-center gap-1.5 text-[10px] font-semibold tracking-[0.2em] uppercase">
+                    <CalendarDays className="h-3 w-3" />
+                    Próximo evento
+                  </p>
+                  <Link href={eventHref(upcoming)} className="block">
+                    <p className="mt-1 line-clamp-2 font-serif text-lg leading-tight font-semibold sm:text-xl">
+                      {upcoming.title}
+                    </p>
+                  </Link>
+                  <p className="text-muted-foreground mt-0.5 text-xs sm:text-sm">
+                    {formatShortDateTime(upcoming.starts_at)}
+                    {price ? ` · ${price.main}` : ''}
+                  </p>
+                </div>
+
+                <div className="w-[7.5rem] shrink-0 sm:w-40">
+                  <BuyButton
+                    eventId={upcoming.id}
+                    eventTitle={upcoming.title}
+                    eventDate={upcoming.starts_at}
+                    eventLocation={upcoming.location}
+                    isFree={upcoming.is_free}
+                    priceAmount={upcoming.price_amount}
+                    priceLabel={upcoming.price_label}
+                    ctaLabel={upcoming.cta_label}
+                    compact
+                    className="h-11 text-sm sm:h-12 sm:text-[15px]"
+                  />
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="flex justify-center">
+              <Link
+                href="#eventos"
+                className="bg-primary text-primary-foreground hover:bg-primary/90 cta-shine inline-flex h-13 items-center gap-2 rounded-full px-8 text-[15px] font-semibold transition-transform duration-200 active:scale-[0.97]"
+              >
+                Ver eventos
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
+          )}
+
+          <div className="mt-5 flex justify-center">
+            <Link
+              href="#eventos"
+              className="text-foreground/55 hover:text-foreground flex flex-col items-center gap-1 rounded-full p-2 text-[10px] font-medium tracking-[0.3em] uppercase transition-colors"
+            >
+              Todos los eventos
+              <ChevronDown className="animate-scroll-hint h-4 w-4" />
+            </Link>
+          </div>
+        </div>
+      </div>
     </header>
   )
 }

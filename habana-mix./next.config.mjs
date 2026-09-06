@@ -4,7 +4,13 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
   images: {
-    unoptimized: true,
+    // Antes estaba en `unoptimized: true`: cada foto viajaba entera al celular.
+    // Ahora Next sirve AVIF/WebP al tamaño real del dispositivo.
+    formats: ['image/avif', 'image/webp'],
+    remotePatterns: [
+      { protocol: 'https', hostname: '**.supabase.co', pathname: '/storage/v1/object/public/**' },
+    ],
+    deviceSizes: [360, 420, 640, 768, 1024, 1280, 1600, 1920],
   },
   async headers() {
     return [
