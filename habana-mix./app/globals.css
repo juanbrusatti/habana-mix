@@ -27,47 +27,59 @@
   --color-foreground: var(--foreground);
   --color-background: var(--background);
 
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
+  --radius-sm: calc(var(--radius) * 0.5);
+  --radius-md: calc(var(--radius) * 0.7);
   --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
+  --radius-xl: calc(var(--radius) * 1.3);
+  --radius-2xl: calc(var(--radius) * 1.7);
+  --radius-3xl: calc(var(--radius) * 2.1);
+  --radius-4xl: calc(var(--radius) * 2.5);
 }
 
 :root,
 .dark {
   color-scheme: dark;
 
-  /* Neutrals cálidos - paleta elegante nocturna */
-  --background: oklch(0.18 0.02 35); /* #100B09 - negro cálido */
-  --foreground: oklch(0.92 0.01 85); /* #F2E7D0 - crema */
-  --card: oklch(0.22 0.025 38); /* #1C1512 - marrón muy oscuro */
-  --card-foreground: oklch(0.92 0.01 85);
-  --popover: oklch(0.20 0.025 38);
-  --popover-foreground: oklch(0.92 0.01 85);
-  --muted: oklch(0.28 0.025 40);
-  --muted-foreground: oklch(0.65 0.02 75); /* #CBBDA6 - beige secundario */
+  /* ---------------------------------------------------------------
+   * Identidad: noche cálida + amarillo eléctrico.
+   * El amarillo y el rojo salen del cartel real del local; la base
+   * oscura cálida es la que ya venía funcionando.
+   * --------------------------------------------------------------- */
 
-  /* Primary: dorado/ocre elegante */
-  --primary: oklch(0.68 0.08 65); /* #C89A3D - dorado apagado */
-  --primary-foreground: oklch(0.20 0.03 40);
+  --background: oklch(0.155 0.016 45); /* negro cálido, un punto más profundo */
+  --foreground: oklch(0.95 0.012 85); /* crema */
+  --card: oklch(0.205 0.02 42);
+  --card-foreground: oklch(0.95 0.012 85);
+  --popover: oklch(0.19 0.02 42);
+  --popover-foreground: oklch(0.95 0.012 85);
+  --muted: oklch(0.27 0.022 45);
+  --muted-foreground: oklch(0.72 0.02 78); /* subido para que se lea al sol */
 
-  /* Accent: terracota sofisticado */
-  --accent: oklch(0.55 0.12 25); /* #A95132 - terracota */
-  --accent-foreground: oklch(0.94 0.01 85);
+  /* Primary: el amarillo del cartel. Es el color de "comprar". */
+  --primary: oklch(0.91 0.17 100);
+  --primary-foreground: oklch(0.17 0.02 60);
 
-  /* Secondary: crema cálido para acciones secundarias */
-  --secondary: oklch(0.85 0.03 70); /* crema más claro */
-  --secondary-foreground: oklch(0.20 0.03 40);
+  /* Accent: el rojo del local. Energía, urgencia, "queda poco". */
+  --accent: oklch(0.52 0.2 27);
+  --accent-foreground: oklch(0.97 0.01 85);
 
-  --destructive: oklch(0.55 0.15 25);
-  --border: oklch(0.92 0.01 85 / 10%); /* border muy sutil */
-  --input: oklch(0.92 0.01 85 / 12%);
-  --ring: oklch(0.68 0.08 65);
+  /* Secondary: superficie elevada para acciones de segundo orden. */
+  --secondary: oklch(0.28 0.022 45);
+  --secondary-foreground: oklch(0.95 0.012 85);
 
-  --radius: 0.75rem; /* slightly more refined */
+  --destructive: oklch(0.58 0.2 27);
+  --border: oklch(0.95 0.012 85 / 12%);
+  --input: oklch(0.95 0.012 85 / 14%);
+  --ring: oklch(0.91 0.17 100);
+
+  --radius: 0.9rem;
+
+  /* Curvas y tiempos: una sola fuente de verdad para todo el movimiento. */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-spring: cubic-bezier(0.34, 1.4, 0.64, 1);
+  --dur-fast: 160ms;
+  --dur-base: 260ms;
+  --dur-slow: 480ms;
 }
 
 @layer base {
@@ -82,61 +94,118 @@
     @apply bg-background text-foreground antialiased;
     overflow-x: hidden;
   }
+  /* Foco visible y consistente en toda la web (se navega mucho con teclado en el admin). */
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
 }
 
 @utility text-gradient-habana {
   background-image: linear-gradient(
     100deg,
     var(--primary) 0%,
-    oklch(0.75 0.06 60) 55%,
-    var(--accent) 100%
+    oklch(0.84 0.16 78) 55%,
+    var(--accent) 115%
   );
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
 }
 
-/* Fina textura de grano para dar sensación premium */
 @utility grain-overlay {
   position: relative;
 }
 
-/* Reveal on scroll - más sutil y elegante */
+/* ------------------------------------------------------------------
+ * Sistema de movimiento
+ *
+ * Regla: ninguna animación bloquea contenido ni supera ~480ms, y el
+ * estado final es SIEMPRE visible. El componente <Reveal> además
+ * fuerza la visibilidad si el observer no llega a disparar.
+ * ------------------------------------------------------------------ */
+
 .reveal {
   opacity: 0;
-  transform: translateY(20px) scale(0.98);
+  transform: translate3d(0, 18px, 0);
   transition:
-    opacity 0.8s cubic-bezier(0.22, 1, 0.36, 1),
-    transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+    opacity var(--dur-slow) var(--ease-out),
+    transform var(--dur-slow) var(--ease-out);
   will-change: opacity, transform;
 }
 .reveal[data-visible='true'] {
   opacity: 1;
   transform: none;
+  will-change: auto;
+}
+
+/* Variante para la primera pantalla: entra sola, sin esperar scroll. */
+@keyframes enter-up {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 16px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.animate-enter-up {
+  animation: enter-up var(--dur-slow) var(--ease-out) both;
+}
+
+/* Elevación de card al hover/tap. Solo transform y box-shadow: barato. */
+@utility card-lift {
+  transition:
+    transform var(--dur-base) var(--ease-out),
+    border-color var(--dur-base) var(--ease-out),
+    box-shadow var(--dur-base) var(--ease-out);
+}
+
+/* Brillo que cruza el CTA al pasar por encima. Se dispara por hover, no en loop. */
+@keyframes cta-shine {
+  from {
+    transform: translateX(-120%) skewX(-12deg);
+  }
+  to {
+    transform: translateX(220%) skewX(-12deg);
+  }
+}
+.cta-shine {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+.cta-shine::after {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 45%;
+  background: linear-gradient(
+    100deg,
+    transparent,
+    oklch(1 0 0 / 0.35),
+    transparent
+  );
+  transform: translateX(-120%) skewX(-12deg);
+  pointer-events: none;
+}
+@media (hover: hover) {
+  .cta-shine:hover::after {
+    animation: cta-shine 700ms var(--ease-out);
+  }
 }
 
 @keyframes ken-burns {
   0% {
-    transform: scale(1.05) translate3d(0, 0, 0);
+    transform: scale(1.04) translate3d(0, 0, 0);
   }
   100% {
-    transform: scale(1.12) translate3d(-1%, -1%, 0);
+    transform: scale(1.1) translate3d(-1%, -1%, 0);
   }
 }
 .animate-ken-burns {
-  animation: ken-burns 32s ease-in-out infinite alternate;
-}
-
-@keyframes marquee-x {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(-50%);
-  }
-}
-.animate-marquee {
-  animation: marquee-x 32s linear infinite;
+  animation: ken-burns 40s ease-in-out infinite alternate;
 }
 
 @keyframes scroll-hint {
@@ -146,12 +215,26 @@
     opacity: 0.35;
   }
   50% {
-    transform: translateY(9px);
+    transform: translateY(8px);
     opacity: 1;
   }
 }
 .animate-scroll-hint {
   animation: scroll-hint 2.2s ease-in-out infinite;
+}
+
+/* Pulso suave para el badge de "hoy / mañana". Muy tenue: informa, no grita. */
+@keyframes soft-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+.animate-soft-pulse {
+  animation: soft-pulse 2.4s ease-in-out infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -160,12 +243,42 @@
     transform: none !important;
     transition: none !important;
   }
+  .animate-enter-up,
   .animate-ken-burns,
-  .animate-marquee,
-  .animate-scroll-hint {
+  .animate-scroll-hint,
+  .animate-soft-pulse {
     animation: none !important;
+  }
+  .cta-shine::after {
+    display: none;
   }
   html {
     scroll-behavior: auto;
+  }
+}
+
+/* ------------------------------------------------------------------
+ * Parallax del hero
+ *
+ * El HTML se renderiza en el servidor y es correcto con --hero-p en 0.
+ * Un componente cliente diminuto solo actualiza esa variable en el scroll,
+ * así el hero no necesita JavaScript para verse bien.
+ * ------------------------------------------------------------------ */
+.hero-parallax-bg {
+  transform: translate3d(0, calc(var(--hero-p, 0) * 14%), 0)
+    scale(calc(1 + var(--hero-p, 0) * 0.06));
+  will-change: transform;
+}
+.hero-parallax-content {
+  transform: translate3d(0, calc(var(--hero-p, 0) * -36px), 0);
+  opacity: calc(1 - var(--hero-p, 0) * 1.15);
+  will-change: transform, opacity;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-parallax-bg,
+  .hero-parallax-content {
+    transform: none !important;
+    opacity: 1 !important;
   }
 }

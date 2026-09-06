@@ -1,88 +1,55 @@
-'use client'
-
-import { useState, useEffect } from 'react'
 import { EventCard } from '@/components/event-card'
 import { Reveal } from '@/components/reveal'
 import { SectionHeading } from '@/components/section-heading'
-import { supabase } from '@/lib/supabase'
+import { isPastEvent } from '@/lib/event-format'
 import type { AcademyEvent } from '@/lib/types'
 
-export function EventsSection() {
-  const [events, setEvents] = useState<AcademyEvent[]>([])
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    loadEvents()
-  }, [])
-
-  const loadEvents = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('events')
-        .select('*')
-        .order('created_at', { ascending: true })
-
-      if (error) {
-        console.error('Error cargando eventos:', error)
-        return
-      }
-      if (data) {
-        setEvents(data)
-      }
-    } catch (error) {
-      console.error('Error cargando eventos:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  if (loading) {
-    return (
-      <section
-        id="eventos"
-        aria-labelledby="eventos-title"
-        className="relative scroll-mt-16 px-5 py-20 sm:px-8 sm:py-28"
-      >
-        <div className="mx-auto max-w-6xl">
-          <div className="flex items-center justify-center">
-            <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-          </div>
-        </div>
-      </section>
-    )
-  }
+/**
+ * Agenda. Server Component: los eventos llegan resueltos desde la página, así
+ * que el HTML ya sale con las cards (antes había un spinner y una consulta a
+ * Supabase que recién arrancaba cuando el navegador terminaba de ejecutar JS).
+ *
+ * El primer evento próximo se muestra destacado y a ancho completo.
+ */
+export function EventsSection({ events }: { events: AcademyEvent[] }) {
+  const upcoming = events.filter((event) => !isPastEvent(event))
+  const [featured, ...rest] = upcoming.length > 0 ? upcoming : events
 
   return (
     <section
       id="eventos"
       aria-labelledby="eventos-title"
-      className="relative scroll-mt-16 px-5 py-20 sm:px-8 sm:py-28"
+      className="relative scroll-mt-20 px-4 py-16 sm:px-8 sm:py-24"
     >
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-80 bg-[radial-gradient(60%_100%_at_50%_0%,oklch(0.79_0.152_68/0.1),transparent_70%)]"
+        className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-80 bg-[radial-gradient(60%_100%_at_50%_0%,oklch(0.91_0.17_100/0.08),transparent_70%)]"
       />
 
       <div className="mx-auto max-w-6xl">
         <SectionHeading
           eyebrow="Agenda"
           title="Próximos eventos"
-          description="Fiestas, socials y talleres intensivos. Cada mes armamos algo nuevo para que salgas a bailar con la comunidad."
+          description="Fiestas, socials y talleres. Elegís, comprás y te llega el QR al mail."
         />
 
         <h2 id="eventos-title" className="sr-only">
           Próximos eventos
         </h2>
 
-        <div className="mt-8 grid gap-4 sm:mt-12 sm:grid-cols-2 sm:gap-5">
-          {events.map((event, i) => (
-            <Reveal key={event.id} delay={i * 110}>
-              <EventCard event={event} />
+        {featured ? (
+          <div className="mt-8 grid gap-4 sm:mt-12 sm:grid-cols-2 sm:gap-5">
+            <Reveal className="sm:col-span-2">
+              <EventCard event={featured} featured priority />
             </Reveal>
-          ))}
-        </div>
 
-        {events.length === 0 && (
+            {rest.map((event, index) => (
+              <Reveal key={event.id} delay={Math.min(index * 90, 270)}>
+                <EventCard event={event} />
+              </Reveal>
+            ))}
+          </div>
+        ) : (
           <p className="text-muted-foreground border-border/60 mt-10 rounded-3xl border border-dashed p-10 text-center text-sm">
             No hay eventos publicados por ahora. Volvé pronto.
           </p>

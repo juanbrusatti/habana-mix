@@ -1,43 +1,57 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { CalendarDays, MapPin, ShieldCheck } from 'lucide-react'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { toast } from 'sonner'
+import {
+  AttendanceFields,
+  emptyAttendanceForm,
+  fieldErrorFromMessage,
+  type AttendanceFieldError,
+  type AttendanceForm,
+} from '@/components/attendance-fields'
+import { formatDateTimeRange, formatPrice } from '@/lib/event-format'
 
 export function PaidAttendanceDialog({
   eventId,
   eventTitle,
+  eventDate,
+  eventLocation,
   amount,
+  priceLabel,
   open,
   onOpenChange,
 }: {
   eventId: string
   eventTitle: string
+  eventDate?: string
+  eventLocation?: string | null
   amount: number | null
+  priceLabel?: string | null
   open: boolean
   onOpenChange: (value: boolean) => void
 }) {
   const [submitting, setSubmitting] = useState(false)
-  const [fieldError, setFieldError] = useState<{ dni?: string; phone?: string; email?: string }>({})
-  const [form, setForm] = useState({ name: '', surname: '', dni: '', phone: '', email: '' })
+  const [fieldError, setFieldError] = useState<AttendanceFieldError>({})
+  const [form, setForm] = useState<AttendanceForm>(emptyAttendanceForm)
 
   useEffect(() => {
     if (!open) {
-      setForm({ name: '', surname: '', dni: '', phone: '', email: '' })
+      setForm(emptyAttendanceForm)
       setFieldError({})
     }
   }, [open, eventId])
 
-  const set = (field: keyof typeof form) => (value: string) => {
+  const set = (field: keyof AttendanceForm, value: string) => {
     setForm((current) => ({ ...current, [field]: value }))
     if (field === 'dni' || field === 'phone' || field === 'email') {
       setFieldError((current) => ({ ...current, [field]: undefined }))
     }
   }
 
+  // --- Lógica de pago: idéntica a la anterior. No cambiar sin revisar Mercado Pago. ---
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
     if (!amount || amount <= 0) {
@@ -46,7 +60,7 @@ export function PaidAttendanceDialog({
     }
 
     if (Object.values(form).some((value) => !value.trim())) {
-      toast.error('Completa todos los campos obligatorios')
+      toast.error('Completá todos los campos')
       return
     }
 
@@ -56,14 +70,14 @@ export function PaidAttendanceDialog({
       const attemptResponse = await fetch('/api/payments/attempts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          event_id: eventId, 
+        body: JSON.stringify({
+          event_id: eventId,
           event_title: eventTitle,
           amount,
-          ...form 
+          ...form,
         }),
       })
-      
+
       if (!attemptResponse.ok) {
         console.warn('No se pudo registrar el intento de pago, pero continuando con el proceso')
       }
@@ -78,10 +92,7 @@ export function PaidAttendanceDialog({
 
       if (!response.ok) {
         const message = String(json?.error || 'No se pudo iniciar el pago')
-        const normalized = message.toLowerCase()
-        if (normalized.includes('dni')) setFieldError((current) => ({ ...current, dni: message }))
-        if (normalized.includes('tel')) setFieldError((current) => ({ ...current, phone: message }))
-        if (normalized.includes('email')) setFieldError((current) => ({ ...current, email: message }))
+        setFieldError((current) => ({ ...current, ...fieldErrorFromMessage(message) }))
         throw new Error(message)
       }
 
@@ -91,54 +102,82 @@ export function PaidAttendanceDialog({
       setSubmitting(false)
     }
   }
+  // --- fin de la lógica de pago ---
 
   if (!eventId) return null
 
+  const total = formatPrice(amount)
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
-        <div className="p-4">
-          <DialogHeader>
-            <p className="text-sm font-semibold uppercase text-primary">Reserva con pago</p>
-            <DialogTitle className="font-serif text-xl">{eventTitle}</DialogTitle>
-            <p className="text-sm text-muted-foreground">
-              Total a pagar: ${amount?.toLocaleString('es-AR')} ARS
+      <DialogContent className="max-h-[92svh] max-w-md overflow-y-auto p-0">
+        <div className="p-5 sm:p-6">
+          <DialogHeader className="text-left">
+            <p className="text-primary text-[11px] font-semibold tracking-[0.2em] uppercase">
+              Tu entrada
             </p>
+            <DialogTitle className="font-serif text-2xl leading-tight">{eventTitle}</DialogTitle>
           </DialogHeader>
 
-          <form onSubmit={handleSubmit} className="mt-4 space-y-3">
-            <div>
-              <Label>Nombre</Label>
-              <Input required value={form.name} onChange={(event) => set('name')(event.target.value)} />
-            </div>
-            <div>
-              <Label>Apellido</Label>
-              <Input required value={form.surname} onChange={(event) => set('surname')(event.target.value)} />
-            </div>
-            <div>
-              <Label>DNI</Label>
-              <Input required value={form.dni} onChange={(event) => set('dni')(event.target.value)} aria-invalid={Boolean(fieldError.dni)} />
-              {fieldError.dni && <p className="mt-1 text-xs text-red-500">{fieldError.dni}</p>}
-            </div>
-            <div>
-              <Label>Teléfono</Label>
-              <Input required value={form.phone} onChange={(event) => set('phone')(event.target.value)} aria-invalid={Boolean(fieldError.phone)} />
-              {fieldError.phone && <p className="mt-1 text-xs text-red-500">{fieldError.phone}</p>}
-            </div>
-            <div>
-              <Label>Email</Label>
-              <Input required type="email" value={form.email} onChange={(event) => set('email')(event.target.value)} aria-invalid={Boolean(fieldError.email)} />
-              {fieldError.email && <p className="mt-1 text-xs text-red-500">{fieldError.email}</p>}
-            </div>
+          {/* Contexto del evento: el que compra confirma qué está comprando. */}
+          {(eventDate || eventLocation) && (
+            <ul className="text-muted-foreground mt-3 space-y-1.5 text-sm">
+              {eventDate && (
+                <li className="flex items-center gap-2">
+                  <CalendarDays className="text-primary h-4 w-4 shrink-0" />
+                  <span className="first-letter:uppercase">{formatDateTimeRange(eventDate, null)}</span>
+                </li>
+              )}
+              {eventLocation && (
+                <li className="flex items-center gap-2">
+                  <MapPin className="text-primary h-4 w-4 shrink-0" />
+                  <span>{eventLocation}</span>
+                </li>
+              )}
+            </ul>
+          )}
 
-            <div className="mt-2 flex gap-2">
-              <Button type="submit" disabled={submitting}>
-                {submitting ? 'Preparando pago…' : 'Pagar con Mercado Pago'}
-              </Button>
-              <Button variant="outline" type="button" onClick={() => onOpenChange(false)}>
-                Cancelar
-              </Button>
-            </div>
+          <div className="border-border/70 bg-secondary/40 mt-4 flex items-baseline justify-between rounded-xl border px-4 py-3">
+            <span className="text-muted-foreground text-sm">Total</span>
+            <span className="font-serif text-2xl font-semibold">{total}</span>
+          </div>
+          {priceLabel && priceLabel !== total && (
+            <p className="text-muted-foreground mt-1.5 text-xs">{priceLabel}</p>
+          )}
+
+          <form onSubmit={handleSubmit} className="mt-5">
+            <AttendanceFields
+              form={form}
+              errors={fieldError}
+              disabled={submitting}
+              onChange={set}
+            />
+
+            <Button
+              type="submit"
+              disabled={submitting}
+              className="bg-primary text-primary-foreground hover:bg-primary/90 mt-5 h-13 w-full rounded-full text-[15px] font-semibold transition-transform duration-200 active:scale-[0.98]"
+            >
+              {submitting ? 'Preparando el pago…' : `Pagar ${total} con Mercado Pago`}
+            </Button>
+
+            <p className="text-muted-foreground mt-3 flex items-start gap-2 text-xs leading-relaxed">
+              <ShieldCheck className="mt-px h-3.5 w-3.5 shrink-0" />
+              <span>
+                Te llevamos a Mercado Pago para completar el pago. Apenas se aprueba, tu entrada con
+                el código QR te llega por email.
+              </span>
+            </p>
+
+            <Button
+              variant="ghost"
+              type="button"
+              disabled={submitting}
+              onClick={() => onOpenChange(false)}
+              className="text-muted-foreground mt-1 h-11 w-full rounded-full"
+            >
+              Cancelar
+            </Button>
           </form>
         </div>
       </DialogContent>
