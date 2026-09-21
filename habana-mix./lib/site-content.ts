@@ -1,5 +1,6 @@
 import { cache } from 'react'
 import { supabase } from '@/lib/supabase'
+import { defaultLive, type LiveConfig } from '@/lib/live'
 import type { AcademyEvent } from '@/lib/types'
 
 /**
@@ -158,6 +159,13 @@ export const getHeroConfig = cache(() => loadConfig('get_hero_config', defaultHe
 export const getAboutConfig = cache(() => loadConfig('get_about_config', defaultAbout))
 export const getLocationConfig = cache(() => loadConfig('get_location_config', defaultLocation))
 export const getFooterConfig = cache(() => loadConfig('get_footer_config', defaultFooter))
+
+/**
+ * Estado de la transmisión en vivo.
+ * Si la migración 034 todavía no se corrió, `loadConfig` devuelve el default
+ * (apagado) y la web sigue funcionando igual.
+ */
+export const getLiveConfig = cache(() => loadConfig<LiveConfig>('get_live_config', defaultLive))
 
 export const getEvents = cache(async (): Promise<AcademyEvent[]> => {
   try {

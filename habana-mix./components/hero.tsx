@@ -2,8 +2,10 @@ import Link from 'next/link'
 import { ArrowRight, CalendarDays, ChevronDown } from 'lucide-react'
 import { BuyButton } from '@/components/buy-button'
 import { HeroMotion } from '@/components/hero-motion'
+import { LiveHeroSlot } from '@/components/live-hero-slot'
 import { SmartImage } from '@/components/smart-image'
 import { eventHref, formatShortDateTime, isPastEvent, resolvePrice } from '@/lib/event-format'
+import type { LiveConfig } from '@/lib/live'
 import type { HeroConfig } from '@/lib/site-content'
 import type { AcademyEvent } from '@/lib/types'
 
@@ -33,9 +35,11 @@ const subtitleSizes: Record<string, string> = {
 export function Hero({
   config,
   nextEvent,
+  live,
 }: {
   config: HeroConfig
   nextEvent: AcademyEvent | null
+  live: LiveConfig
 }) {
   const titleClass = titleSizes[config.title_size] || titleSizes['text-6xl']
   const subtitleClass = subtitleSizes[config.subtitle_size] || subtitleSizes['text-base']
@@ -103,7 +107,9 @@ export function Hero({
       {/* Próximo evento, ya en la primera pantalla. */}
       <div className="relative z-10 w-full px-4 pb-10 sm:px-6 sm:pb-14">
         <div className="mx-auto max-w-3xl">
-          {upcoming ? (
+          {/* Si hay transmisión encendida, el vivo se queda con este lugar. */}
+          <LiveHeroSlot initial={live}>
+            {upcoming ? (
             <div
               className="animate-enter-up border-border/60 bg-background/75 rounded-3xl border p-3 shadow-[0_20px_60px_-30px_oklch(0_0_0/0.95)] backdrop-blur-xl sm:p-4"
               style={{ animationDelay: '280ms' }}
@@ -168,6 +174,7 @@ export function Hero({
               </Link>
             </div>
           )}
+          </LiveHeroSlot>
 
           <div className="mt-5 flex justify-center">
             <Link

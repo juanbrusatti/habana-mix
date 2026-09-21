@@ -11,6 +11,7 @@ import {
   getEvents,
   getFooterConfig,
   getHeroConfig,
+  getLiveConfig,
   getLocationConfig,
   sortEventsByRelevance,
 } from '@/lib/site-content'
@@ -33,12 +34,13 @@ import {
 export const revalidate = 30
 
 export default async function HomePage() {
-  const [hero, events, location, about, footer] = await Promise.all([
+  const [hero, events, location, about, footer, live] = await Promise.all([
     getHeroConfig(),
     getEvents(),
     getLocationConfig(),
     getAboutConfig(),
     getFooterConfig(),
+    getLiveConfig(),
   ])
 
   const sortedEvents = sortEventsByRelevance(events)
@@ -47,7 +49,7 @@ export default async function HomePage() {
   return (
     <>
       <SiteNav />
-      <Hero config={hero} nextEvent={nextEvent} />
+      <Hero config={hero} nextEvent={nextEvent} live={live} />
       <main>
         <EventsSection events={sortedEvents} />
         <CompetitionsSection />
