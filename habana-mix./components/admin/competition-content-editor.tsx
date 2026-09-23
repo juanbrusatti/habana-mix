@@ -527,7 +527,7 @@ export function CompetitionContentEditor({ competitionId }: CompetitionContentEd
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="section_button_text">Texto del botón</Label>
+              <Label htmlFor="section_button_text">Texto del botón.</Label>
               <Input
                 id="section_button_text"
                 value={sectionFormData.button_text}
@@ -538,7 +538,7 @@ export function CompetitionContentEditor({ competitionId }: CompetitionContentEd
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="section_button_url">URL del botón</Label>
+              <Label htmlFor="section_button_url">URL del botón.</Label>
               <Input
                 id="section_button_url"
                 value={sectionFormData.button_url}
@@ -549,7 +549,7 @@ export function CompetitionContentEditor({ competitionId }: CompetitionContentEd
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="section_order">Orden</Label>
+              <Label htmlFor="section_order">Orden.</Label>
               <Input
                 id="section_order"
                 type="number"
@@ -593,7 +593,7 @@ export function CompetitionContentEditor({ competitionId }: CompetitionContentEd
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="schedule_description">Descripción</Label>
+              <Label htmlFor="schedule_description">Descripción.</Label>
               <Textarea
                 id="schedule_description"
                 value={scheduleFormData.description}
@@ -616,7 +616,7 @@ export function CompetitionContentEditor({ competitionId }: CompetitionContentEd
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="schedule_end">Fin</Label>
+              <Label htmlFor="schedule_end">Fin.</Label>
               <Input
                 id="schedule_end"
                 type="datetime-local"
@@ -627,7 +627,7 @@ export function CompetitionContentEditor({ competitionId }: CompetitionContentEd
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="schedule_location">Ubicación</Label>
+              <Label htmlFor="schedule_location">Ubicación.</Label> 
               <Input
                 id="schedule_location"
                 value={scheduleFormData.location}
@@ -638,7 +638,7 @@ export function CompetitionContentEditor({ competitionId }: CompetitionContentEd
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="schedule_order">Orden</Label>
+              <Label htmlFor="schedule_order">Orden.</Label>
               <Input
                 id="schedule_order"
                 type="number"
