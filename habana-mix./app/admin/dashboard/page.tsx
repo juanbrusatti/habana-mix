@@ -11,8 +11,9 @@ import { EventsEditor } from '@/components/admin/events-editor'
 import { AttendanceAdmin } from '@/components/admin/attendance-admin'
 import { RaffleAdmin } from '@/components/admin/raffle-admin'
 import { CompetitionsEditor } from '@/components/admin/competitions-editor'
+import { LiveEditor } from '@/components/admin/live-editor'
 import { toast } from 'sonner'
-import { Lock, Unlock } from 'lucide-react'
+import { Lock, Radio, Unlock } from 'lucide-react'
 
 interface AdminSession {
   admin_id: string
@@ -115,6 +116,10 @@ export default function AdminDashboard() {
               <Unlock className="w-3 h-3 sm:w-4 sm:h-4" />
               Eventos
             </TabsTrigger>
+            <TabsTrigger value="vivo" className="flex items-center gap-2 text-xs sm:text-sm px-3 py-2 sm:px-4">
+              <Radio className="w-3 h-3 sm:w-4 sm:h-4" />
+              En vivo
+            </TabsTrigger>
             <TabsTrigger value="asistencia" className="flex items-center gap-2 text-xs sm:text-sm px-3 py-2 sm:px-4">
               <Unlock className="w-3 h-3 sm:w-4 sm:h-4" />
               Asistencia
@@ -147,6 +152,10 @@ export default function AdminDashboard() {
 
           <TabsContent value="eventos" className="space-y-4">
             <EventsEditor />
+          </TabsContent>
+
+          <TabsContent value="vivo" className="space-y-4">
+            <LiveEditor />
           </TabsContent>
 
           <TabsContent value="asistencia" className="space-y-4">
