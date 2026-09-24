@@ -1,6 +1,7 @@
 import { cache } from 'react'
 import { supabase } from '@/lib/supabase'
 import { defaultLive, type LiveConfig } from '@/lib/live'
+import type { PhotoAlbum } from '@/lib/photos'
 import type { AcademyEvent } from '@/lib/types'
 
 /**
@@ -182,6 +183,52 @@ export const getEvents = cache(async (): Promise<AcademyEvent[]> => {
   } catch (error) {
     console.error('Error cargando eventos:', error)
     return []
+  }
+})
+
+/**
+ * Álbumes de fotos publicados, del más nuevo al más viejo.
+ * Si la migración 035 todavía no corrió, la consulta falla y se devuelve una
+ * lista vacía: la sección Fotos queda en su estado vacío y nada se rompe.
+ */
+export const getAlbums = cache(async (): Promise<PhotoAlbum[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('photo_albums')
+      .select('*')
+      .eq('is_published', true)
+      .order('album_date', { ascending: false, nullsFirst: false })
+      .order('created_at', { ascending: false })
+
+    if (error) {
+      console.error('Error cargando álbumes:', error.message)
+      return []
+    }
+    return data || []
+  } catch (error) {
+    console.error('Error cargando álbumes:', error)
+    return []
+  }
+})
+
+export const getAlbum = cache(async (id: string): Promise<PhotoAlbum | null> => {
+  // Evita consultar con ids que no son uuid (Postgres tiraría error).
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) return null
+  try {
+    const { data, error } = await supabase
+      .from('photo_albums')
+      .select('*')
+      .eq('id', id)
+      .eq('is_published', true)
+      .maybeSingle()
+    if (error) {
+      console.error('Error cargando álbum:', error.message)
+      return null
+    }
+    return data
+  } catch (error) {
+    console.error('Error cargando álbum:', error)
+    return null
   }
 })
 

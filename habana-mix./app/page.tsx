@@ -3,12 +3,14 @@ import { CompetitionsSection } from '@/components/competitions-section'
 import { EventsSection } from '@/components/events-section'
 import { Hero } from '@/components/hero'
 import { LocationSection } from '@/components/location-section'
+import { PhotosSection } from '@/components/photos-section'
 import { SiteFooter } from '@/components/site-footer'
 import { SiteNav } from '@/components/site-nav'
 import { isPastEvent } from '@/lib/event-format'
 import {
   getAboutConfig,
   getEvents,
+  getAlbums,
   getFooterConfig,
   getHeroConfig,
   getLiveConfig,
@@ -34,13 +36,14 @@ import {
 export const revalidate = 30
 
 export default async function HomePage() {
-  const [hero, events, location, about, footer, live] = await Promise.all([
+  const [hero, events, location, about, footer, live, albums] = await Promise.all([
     getHeroConfig(),
     getEvents(),
     getLocationConfig(),
     getAboutConfig(),
     getFooterConfig(),
     getLiveConfig(),
+    getAlbums(),
   ])
 
   const sortedEvents = sortEventsByRelevance(events)
@@ -52,6 +55,7 @@ export default async function HomePage() {
       <Hero config={hero} nextEvent={nextEvent} live={live} />
       <main>
         <EventsSection events={sortedEvents} />
+        <PhotosSection albums={albums} />
         <CompetitionsSection />
         <LocationSection config={location} />
         <AboutSection config={about} />
