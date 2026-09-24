@@ -2,7 +2,6 @@ import Link from 'next/link'
 import { ArrowLeft, CalendarDays, ImageIcon, MapPin, Ticket } from 'lucide-react'
 import { BuyButton } from '@/components/buy-button'
 import { EventGallery } from '@/components/event-gallery'
-import { EventPhotosBlock } from '@/components/event-photos-block'
 import { Reveal } from '@/components/reveal'
 import { SmartImage } from '@/components/smart-image'
 import { getCardTheme } from '@/lib/card-theme'
@@ -120,9 +119,6 @@ export function EventDetail({
             </div>
           </div>
         )}
-
-        {/* Si ya hay fotos, es lo primero que viene a buscar la gente. */}
-        {event.photos_url && <EventPhotosBlock photosUrl={event.photos_url} />}
 
         {/* Bloque de decisión: datos duros + precio + comprar, todo junto y arriba. */}
         <section className="border-border/60 bg-card space-y-5 rounded-3xl border p-5 sm:p-7">

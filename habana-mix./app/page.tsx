@@ -10,7 +10,7 @@ import { isPastEvent } from '@/lib/event-format'
 import {
   getAboutConfig,
   getEvents,
-  getEventsWithPhotos,
+  getAlbums,
   getFooterConfig,
   getHeroConfig,
   getLiveConfig,
@@ -36,14 +36,14 @@ import {
 export const revalidate = 30
 
 export default async function HomePage() {
-  const [hero, events, location, about, footer, live, photoEvents] = await Promise.all([
+  const [hero, events, location, about, footer, live, albums] = await Promise.all([
     getHeroConfig(),
     getEvents(),
     getLocationConfig(),
     getAboutConfig(),
     getFooterConfig(),
     getLiveConfig(),
-    getEventsWithPhotos(),
+    getAlbums(),
   ])
 
   const sortedEvents = sortEventsByRelevance(events)
@@ -55,7 +55,7 @@ export default async function HomePage() {
       <Hero config={hero} nextEvent={nextEvent} live={live} />
       <main>
         <EventsSection events={sortedEvents} />
-        <PhotosSection events={photoEvents} />
+        <PhotosSection albums={albums} />
         <CompetitionsSection />
         <LocationSection config={location} />
         <AboutSection config={about} />

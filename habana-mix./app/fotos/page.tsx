@@ -2,18 +2,18 @@ import Link from 'next/link'
 import { ArrowLeft, Camera } from 'lucide-react'
 import { PhotoAlbumCard } from '@/components/photo-album-card'
 import { Reveal } from '@/components/reveal'
-import { getEventsWithPhotos } from '@/lib/site-content'
+import { getAlbums } from '@/lib/site-content'
 
 export const metadata = {
   title: 'Fotos de los eventos | Habana Mix',
   description: 'Buscá tu foto de los eventos de Habana Mix y descargala.',
 }
 
-/** Se regenera cada minuto: cuando el admin carga un link, aparece solo. */
+/** Se regenera cada minuto: cuando el admin crea un álbum, aparece solo. */
 export const revalidate = 60
 
 export default async function PhotosPage() {
-  const events = await getEventsWithPhotos()
+  const albums = await getAlbums()
 
   return (
     <div className="bg-background text-foreground min-h-screen">
@@ -45,15 +45,15 @@ export default async function PhotosPage() {
             Buscá tu foto
           </h1>
           <p className="text-muted-foreground mt-3 max-w-xl text-base leading-relaxed">
-            Elegí el evento, entrá a la carpeta y descargá las tuyas.
+            Elegí el álbum, entrá a la carpeta y descargá las tuyas.
           </p>
         </div>
 
-        {events.length > 0 ? (
+        {albums.length > 0 ? (
           <div className="mt-10 grid gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3">
-            {events.map((event, index) => (
-              <Reveal key={event.id} delay={Math.min(index * 80, 240)}>
-                <PhotoAlbumCard event={event} priority={index === 0} />
+            {albums.map((album, index) => (
+              <Reveal key={album.id} delay={Math.min(index * 80, 240)}>
+                <PhotoAlbumCard album={album} priority={index === 0} />
               </Reveal>
             ))}
           </div>
@@ -62,7 +62,7 @@ export default async function PhotosPage() {
             <Camera className="text-muted-foreground mx-auto h-8 w-8" />
             <p className="mt-3 font-medium">Todavía no hay fotos publicadas</p>
             <p className="text-muted-foreground mt-1 text-sm">
-              Las subimos unos días después de cada evento.
+              Las subimos unos días después de cada fiesta.
             </p>
             <Link
               href="/#eventos"
