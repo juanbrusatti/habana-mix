@@ -71,7 +71,6 @@ interface Event {
   created_at: string
   /** Existen recién después de correr la migración 035. */
   photos_url?: string | null
-  photos_emailed_at?: string | null
 }
 
 interface EventFormData {
@@ -231,7 +230,7 @@ export function EventsEditor() {
   const handleDelete = async (eventId: string) => {
     if (
       !confirm(
-        '¿Eliminar este evento?\n\nSe borran también todas sus asistencias y entradas: los asistentes pierden el acceso a su entrada y a las fotos. No se puede deshacer.',
+        '¿Eliminar este evento?\n\nSe borran también todas sus asistencias y entradas, y el evento desaparece de la sección Fotos. No se puede deshacer.',
       )
     )
       return
@@ -660,12 +659,10 @@ export function EventsEditor() {
               {photosOpenId === event.id && (
                 <EventPhotosPanel
                   eventId={event.id}
-                  eventTitle={event.title}
                   initialUrl={event.photos_url ?? null}
-                  initialEmailedAt={event.photos_emailed_at ?? null}
-                  onChange={(patch) =>
+                  onChange={(photosUrl) =>
                     setEvents((current) =>
-                      current.map((item) => (item.id === event.id ? { ...item, ...patch } : item)),
+                      current.map((item) => (item.id === event.id ? { ...item, photos_url: photosUrl } : item)),
                     )
                   }
                 />

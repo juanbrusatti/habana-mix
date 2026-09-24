@@ -34,6 +34,8 @@ export interface AcademyEvent {
   /** Sobrescribe el color del tema si el admin quiere algo puntual */
   accent_color: string | null
   created_at?: string
+  /** Link de Drive con las fotos del evento (migración 035). */
+  photos_url?: string | null
 }
 
 export interface EventSection {

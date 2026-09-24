@@ -25,7 +25,7 @@ export async function POST(request: Request) {
       .from('events')
       .update({ photos_url: check.url || null })
       .eq('id', eventId)
-      .select('id, photos_url, photos_emailed_at')
+      .select('id, photos_url')
       .maybeSingle()
 
     if (error) {

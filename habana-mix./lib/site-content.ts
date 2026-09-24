@@ -185,6 +185,31 @@ export const getEvents = cache(async (): Promise<AcademyEvent[]> => {
   }
 })
 
+/**
+ * Eventos con link de fotos cargado, del más reciente al más viejo.
+ * Si la migración 035 todavía no corrió, la consulta falla y se devuelve una
+ * lista vacía: la sección Fotos queda en su estado vacío y nada se rompe.
+ */
+export const getEventsWithPhotos = cache(async (): Promise<AcademyEvent[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('events')
+      .select('*')
+      .not('photos_url', 'is', null)
+      .neq('photos_url', '')
+      .order('starts_at', { ascending: false })
+
+    if (error) {
+      console.error('Error cargando eventos con fotos:', error.message)
+      return []
+    }
+    return data || []
+  } catch (error) {
+    console.error('Error cargando eventos con fotos:', error)
+    return []
+  }
+})
+
 /** Ordena por fecha de inicio dejando primero los que todavía no pasaron. */
 export function sortEventsByRelevance(events: AcademyEvent[]): AcademyEvent[] {
   const now = Date.now()
