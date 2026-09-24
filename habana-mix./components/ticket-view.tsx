@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import QRCode from 'qrcode'
-import { Check, Download, TriangleAlert } from 'lucide-react'
+import { Camera, Check, Download, ExternalLink, TriangleAlert } from 'lucide-react'
 import { WhatsAppIcon } from '@/components/brand-icons'
 import { Button } from '@/components/ui/button'
 
@@ -13,6 +13,7 @@ interface TicketData {
   code: string
   checkedInAt: string | null
   paidAt: string | null
+  photosUrl?: string | null
 }
 
 export function TicketView({ token }: { token: string }) {
@@ -102,6 +103,27 @@ export function TicketView({ token }: { token: string }) {
       </div>
 
       <div className="p-5 sm:p-6">
+        {/* Fotos del evento: arriba de todo, porque si están es lo que la persona vino a buscar. */}
+        {ticket.photosUrl && (
+          <a
+            href={ticket.photosUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="group border-primary/30 bg-primary/10 hover:border-primary/60 mb-5 flex items-center gap-3 rounded-2xl border p-4 text-left transition-colors"
+          >
+            <span className="bg-primary text-primary-foreground flex h-11 w-11 shrink-0 items-center justify-center rounded-xl">
+              <Camera className="h-5 w-5" />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block font-semibold">Las fotos del evento ya están</span>
+              <span className="text-muted-foreground block text-xs">
+                Miralas y descargalas desde Google Drive
+              </span>
+            </span>
+            <ExternalLink className="text-muted-foreground h-4 w-4 shrink-0 transition-transform group-hover:translate-x-0.5" />
+          </a>
+        )}
+
         {qrDataUrl && (
           <div className={`mx-auto w-fit rounded-2xl bg-white p-3 ${used ? 'opacity-45' : ''}`}>
             {/* eslint-disable-next-line @next/next/no-img-element */}

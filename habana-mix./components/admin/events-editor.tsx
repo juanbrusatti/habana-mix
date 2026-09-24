@@ -7,8 +7,9 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from 'sonner'
-import { Loader2, Plus, Trash2, Edit2, Calendar, MapPin, Layout, ImageIcon, ArrowLeft } from 'lucide-react'
+import { Loader2, Plus, Trash2, Edit2, Calendar, MapPin, Layout, ImageIcon, ArrowLeft, Camera } from 'lucide-react'
 import { EventContentEditor } from './event-content-editor'
+import { EventPhotosPanel } from './event-photos-panel'
 
 function formatEventDateTime(startsAt: string, endsAt: string | null) {
   const startDate = new Date(startsAt)
@@ -68,6 +69,9 @@ interface Event {
   overlay_opacity: number
   accent_color: string | null
   created_at: string
+  /** Existen recién después de correr la migración 035. */
+  photos_url?: string | null
+  photos_emailed_at?: string | null
 }
 
 interface EventFormData {
@@ -121,6 +125,7 @@ export function EventsEditor() {
   const [formData, setFormData] = useState<EventFormData>(emptyEvent)
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
+  const [photosOpenId, setPhotosOpenId] = useState<string | null>(null)
 
   useEffect(() => {
     loadEvents()
@@ -224,7 +229,12 @@ export function EventsEditor() {
   }
 
   const handleDelete = async (eventId: string) => {
-    if (!confirm('¿Estás seguro de eliminar este evento?')) return
+    if (
+      !confirm(
+        '¿Eliminar este evento?\n\nSe borran también todas sus asistencias y entradas: los asistentes pierden el acceso a su entrada y a las fotos. No se puede deshacer.',
+      )
+    )
+      return
 
     try {
       const { error } = await supabase
@@ -627,6 +637,17 @@ export function EventsEditor() {
                     <Layout className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-0" />
                     <span className="sm:hidden text-xs">Imágenes</span>
                   </Button>
+                  <Button
+                    size="sm"
+                    variant={photosOpenId === event.id ? 'default' : 'outline'}
+                    onClick={() => setPhotosOpenId((current) => (current === event.id ? null : event.id))}
+                    className="flex-1 sm:flex-none"
+                    title="Link de fotos del evento"
+                  >
+                    <Camera className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-0" />
+                    <span className="sm:hidden text-xs">Fotos</span>
+                    {event.photos_url && <span className="ml-1 h-1.5 w-1.5 rounded-full bg-green-500" />}
+                  </Button>
                   <Button size="sm" variant="outline" onClick={() => handleEdit(event)} className="flex-1 sm:flex-none">
                     <Edit2 className="w-3 h-3 sm:w-4 sm:h-4" />
                   </Button>
@@ -635,6 +656,20 @@ export function EventsEditor() {
                   </Button>
                 </div>
               </div>
+
+              {photosOpenId === event.id && (
+                <EventPhotosPanel
+                  eventId={event.id}
+                  eventTitle={event.title}
+                  initialUrl={event.photos_url ?? null}
+                  initialEmailedAt={event.photos_emailed_at ?? null}
+                  onChange={(patch) =>
+                    setEvents((current) =>
+                      current.map((item) => (item.id === event.id ? { ...item, ...patch } : item)),
+                    )
+                  }
+                />
+              )}
             </div>
           ))}
         </div>
