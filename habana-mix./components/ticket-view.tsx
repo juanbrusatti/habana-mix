@@ -5,6 +5,7 @@ import QRCode from 'qrcode'
 import { Check, Download, TriangleAlert } from 'lucide-react'
 import { WhatsAppIcon } from '@/components/brand-icons'
 import { Button } from '@/components/ui/button'
+import { AR_TIME_ZONE } from '@/lib/argentina-time'
 
 interface TicketData {
   eventTitle: string
@@ -121,6 +122,7 @@ export function TicketView({ token }: { token: string }) {
           <p className="text-muted-foreground border-border/60 mt-4 border-t pt-4 text-center text-xs">
             Ingreso registrado el{' '}
             {new Date(ticket.checkedInAt).toLocaleString('es-AR', {
+              timeZone: AR_TIME_ZONE,
               dateStyle: 'short',
               timeStyle: 'short',
             })}
