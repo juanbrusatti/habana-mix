@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { AR_TIME_ZONE } from '@/lib/argentina-time'
 
 interface AttendeePreview {
   event_title: string
@@ -546,7 +547,7 @@ export function AccessControl() {
               </p>
               {record.checked_in_at && (
                 <p className="mt-1 text-xs text-red-500">
-                  Usada: {new Date(record.checked_in_at).toLocaleString('es-AR')}
+                  Usada: {new Date(record.checked_in_at).toLocaleString('es-AR', { timeZone: AR_TIME_ZONE })}
                 </p>
               )}
             </button>

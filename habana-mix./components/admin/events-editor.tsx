@@ -9,6 +9,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { toast } from 'sonner'
 import { Loader2, Plus, Trash2, Edit2, Calendar, MapPin, Layout, ImageIcon, ArrowLeft } from 'lucide-react'
 import { EventContentEditor } from './event-content-editor'
+import { AR_TIME_ZONE, fromArgentinaInputValue, isSameArgentinaDay, toArgentinaInputValue } from '@/lib/argentina-time'
 
 function formatEventDateTime(startsAt: string, endsAt: string | null) {
   const startDate = new Date(startsAt)
@@ -18,20 +19,23 @@ function formatEventDateTime(startsAt: string, endsAt: string | null) {
     day: 'numeric',
     month: 'short',
     year: 'numeric',
+    timeZone: AR_TIME_ZONE,
   })
 
   const startTimeStr = startDate.toLocaleTimeString('es-AR', {
     hour: '2-digit',
     minute: '2-digit',
+    timeZone: AR_TIME_ZONE,
   })
 
   if (endDate) {
     const endTimeStr = endDate.toLocaleTimeString('es-AR', {
       hour: '2-digit',
       minute: '2-digit',
+      timeZone: AR_TIME_ZONE,
     })
 
-    if (startDate.toDateString() === endDate.toDateString()) {
+    if (isSameArgentinaDay(startDate, endDate)) {
       return `${dateStr} · ${startTimeStr} - ${endTimeStr}`
     }
 
@@ -39,6 +43,7 @@ function formatEventDateTime(startsAt: string, endsAt: string | null) {
       day: 'numeric',
       month: 'short',
       year: 'numeric',
+      timeZone: AR_TIME_ZONE,
     })
 
     return `${dateStr} ${startTimeStr} - ${endDateStr} ${endTimeStr}`
@@ -157,8 +162,9 @@ export function EventsEditor() {
       subtitle: event.subtitle || '',
       description: event.description || '',
       image_url: event.image_url || '',
-      starts_at: new Date(event.starts_at).toISOString().slice(0, 16),
-      ends_at: event.ends_at ? new Date(event.ends_at).toISOString().slice(0, 16) : '',
+      // Hora argentina en el input (antes se mostraba UTC y cada guardado corría el evento 3 h).
+      starts_at: toArgentinaInputValue(event.starts_at),
+      ends_at: toArgentinaInputValue(event.ends_at),
       location: event.location || '',
       is_free: event.is_free,
       price_label: event.price_label || '',
@@ -252,14 +258,21 @@ export function EventsEditor() {
         return
       }
 
+      const startsAt = fromArgentinaInputValue(formData.starts_at)
+      if (!startsAt) {
+        toast.error('Ingresá una fecha y hora de inicio válida')
+        return
+      }
+      const endsAt = formData.ends_at ? fromArgentinaInputValue(formData.ends_at) : null
+
       const eventData = {
         slug: formData.slug,
         title: formData.title,
         subtitle: formData.subtitle || null,
         description: formData.description || null,
         image_url: formData.image_url || null,
-        starts_at: new Date(formData.starts_at).toISOString(),
-        ends_at: formData.ends_at ? new Date(formData.ends_at).toISOString() : null,
+        starts_at: startsAt,
+        ends_at: endsAt,
         location: formData.location || null,
         is_free: formData.is_free,
         price_label: formData.is_free ? null : (formData.price_label || null),

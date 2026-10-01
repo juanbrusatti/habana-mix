@@ -2,6 +2,7 @@
 
 import { Calendar, MapPin, Clock } from 'lucide-react'
 import type { CompetitionSchedule } from '@/lib/competition-types'
+import { AR_TIME_ZONE } from '@/lib/argentina-time'
 
 interface CompetitionScheduleProps {
   schedule: CompetitionSchedule
@@ -12,7 +13,8 @@ export function CompetitionSchedule({ schedule }: CompetitionScheduleProps) {
     return new Date(date).toLocaleTimeString('es-AR', {
       hour: '2-digit',
       minute: '2-digit',
-      hour12: true
+      hour12: true,
+      timeZone: AR_TIME_ZONE,
     })
   }
 
@@ -20,7 +22,8 @@ export function CompetitionSchedule({ schedule }: CompetitionScheduleProps) {
     return new Date(date).toLocaleDateString('es-AR', {
       weekday: 'long',
       day: 'numeric',
-      month: 'long'
+      month: 'long',
+      timeZone: AR_TIME_ZONE,
     })
   }
 

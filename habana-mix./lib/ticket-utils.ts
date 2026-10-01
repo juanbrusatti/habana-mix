@@ -3,6 +3,7 @@ import 'server-only'
 import { createHash, randomBytes } from 'node:crypto'
 import nodemailer from 'nodemailer'
 import QRCode from 'qrcode'
+import { AR_TIME_ZONE } from '@/lib/argentina-time'
 
 export const ticketAlphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
 
@@ -58,7 +59,7 @@ export async function sendEventReminderEmail({
   ticketUrl: string
 }) {
   const dateText = eventDate
-    ? new Intl.DateTimeFormat('es-AR', { dateStyle: 'full', timeStyle: 'short' }).format(new Date(eventDate))
+    ? new Intl.DateTimeFormat('es-AR', { dateStyle: 'full', timeStyle: 'short', timeZone: AR_TIME_ZONE }).format(new Date(eventDate))
     : 'Consultar fecha del evento'
 
   return sendGmail({

@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto'
 import { NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-admin'
+import { AR_TIME_ZONE } from '@/lib/argentina-time'
 
 function parseTicketValue(raw: string) {
   const trimmed = String(raw || '').trim()
@@ -68,7 +69,7 @@ export async function POST(req: Request) {
         return NextResponse.json({
           found: true,
           alreadyUsed: true,
-          message: `Entrada ya utilizada el ${new Date(data.checked_in_at).toLocaleString('es-AR')}`,
+          message: `Entrada ya utilizada el ${new Date(data.checked_in_at).toLocaleString('es-AR', { timeZone: AR_TIME_ZONE })}`,
           attendee: data,
         })
       }
@@ -85,7 +86,7 @@ export async function POST(req: Request) {
       return NextResponse.json({
         valid: false,
         alreadyUsed: true,
-        message: `Entrada ya utilizada el ${new Date(data.checked_in_at).toLocaleString('es-AR')}`,
+        message: `Entrada ya utilizada el ${new Date(data.checked_in_at).toLocaleString('es-AR', { timeZone: AR_TIME_ZONE })}`,
         attendee: data,
       }, { status: 409 })
     }

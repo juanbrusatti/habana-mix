@@ -1,4 +1,5 @@
 import type { AcademyEvent } from '@/lib/types'
+import { AR_TIME_ZONE, isSameArgentinaDay } from '@/lib/argentina-time'
 
 /**
  * Formato de eventos, en un solo lugar.
@@ -6,21 +7,25 @@ import type { AcademyEvent } from '@/lib/types'
  * habían empezado a divergir.
  */
 
+// Zona fija: el servidor (Vercel) corre en UTC y sin esto mostraba el día siguiente.
 const dateFormatter = new Intl.DateTimeFormat('es-AR', {
   weekday: 'long',
   day: 'numeric',
   month: 'long',
+  timeZone: AR_TIME_ZONE,
 })
 
 const shortDateFormatter = new Intl.DateTimeFormat('es-AR', {
   day: 'numeric',
   month: 'short',
+  timeZone: AR_TIME_ZONE,
 })
 
 const timeFormatter = new Intl.DateTimeFormat('es-AR', {
   hour: '2-digit',
   minute: '2-digit',
   hour12: false,
+  timeZone: AR_TIME_ZONE,
 })
 
 export function formatDateTimeRange(startsAt: string, endsAt: string | null) {
@@ -34,7 +39,7 @@ export function formatDateTimeRange(startsAt: string, endsAt: string | null) {
   if (!end || Number.isNaN(end.getTime())) return `${dateStr} · ${startTime}`
 
   const endTime = timeFormatter.format(end)
-  if (start.toDateString() === end.toDateString()) {
+  if (isSameArgentinaDay(start, end)) {
     return `${dateStr} · ${startTime} a ${endTime}`
   }
   return `${dateStr} ${startTime} — ${dateFormatter.format(end)} ${endTime}`

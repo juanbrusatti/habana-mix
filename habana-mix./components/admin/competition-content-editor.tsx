@@ -11,6 +11,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { toast } from 'sonner'
 import { Plus, Edit2, Trash2, ImageIcon, Calendar } from 'lucide-react'
 import type { CompetitionSection, CompetitionSchedule } from '@/lib/competition-types'
+import { AR_TIME_ZONE, fromArgentinaInputValue, toArgentinaInputValue } from '@/lib/argentina-time'
 
 interface CompetitionContentEditorProps {
   competitionId: string
@@ -190,8 +191,9 @@ export function CompetitionContentEditor({ competitionId }: CompetitionContentEd
     setScheduleFormData({
       title: schedule.title,
       description: schedule.description || '',
-      start_time: schedule.start_time.slice(0, 16),
-      end_time: schedule.end_time ? schedule.end_time.slice(0, 16) : '',
+      // Hora argentina en el input (antes se tomaba el texto UTC y cada guardado corría 3 h).
+      start_time: toArgentinaInputValue(schedule.start_time),
+      end_time: toArgentinaInputValue(schedule.end_time),
       location: schedule.location || '',
       sort_order: schedule.sort_order
     })
@@ -203,12 +205,17 @@ export function CompetitionContentEditor({ competitionId }: CompetitionContentEd
     setSaving(true)
 
     try {
+      if (!fromArgentinaInputValue(scheduleFormData.start_time)) {
+        toast.error('Ingresá una fecha y hora de inicio válida')
+        return
+      }
+
       const scheduleData = {
         competition_id: competitionId,
         title: scheduleFormData.title,
         description: scheduleFormData.description || null,
-        start_time: new Date(scheduleFormData.start_time).toISOString(),
-        end_time: scheduleFormData.end_time ? new Date(scheduleFormData.end_time).toISOString() : null,
+        start_time: fromArgentinaInputValue(scheduleFormData.start_time),
+        end_time: scheduleFormData.end_time ? fromArgentinaInputValue(scheduleFormData.end_time) : null,
         location: scheduleFormData.location || null,
         sort_order: scheduleFormData.sort_order
       }
@@ -424,7 +431,7 @@ export function CompetitionContentEditor({ competitionId }: CompetitionContentEd
                     <div className="flex-1 w-full">
                       <h4 className="font-semibold">{schedule.title}</h4>
                       <p className="text-sm text-muted-foreground">
-                        {new Date(schedule.start_time).toLocaleString('es-AR')}
+                        {new Date(schedule.start_time).toLocaleString('es-AR', { timeZone: AR_TIME_ZONE })}
                       </p>
                       {schedule.location && (
                         <p className="text-xs text-muted-foreground">{schedule.location}</p>
