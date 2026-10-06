@@ -2,6 +2,8 @@ import Link from 'next/link'
 import { ArrowLeft, CalendarDays, ImageIcon, MapPin, Ticket } from 'lucide-react'
 import { BuyButton } from '@/components/buy-button'
 import { EventGallery } from '@/components/event-gallery'
+import { CompetitionInfoBlock } from '@/components/competition-info-block' // COMPETENCIA TEMPORAL
+import { showCompetitionForEvent } from '@/lib/competition-info' // COMPETENCIA TEMPORAL
 import { Reveal } from '@/components/reveal'
 import { SmartImage } from '@/components/smart-image'
 import { getCardTheme } from '@/lib/card-theme'
@@ -201,6 +203,8 @@ export function EventDetail({
             </div>
           )}
         </section>
+
+        {showCompetitionForEvent(event.slug) && <CompetitionInfoBlock />} {/* COMPETENCIA TEMPORAL */}
 
         {sortedSections.length > 0 && (
           <section className="space-y-4 pt-2">

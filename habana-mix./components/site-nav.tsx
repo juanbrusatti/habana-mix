@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Menu, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { competitionInfo } from '@/lib/competition-info' // COMPETENCIA TEMPORAL
 
 const links = [
   { href: '#eventos', label: 'Eventos' },
@@ -95,6 +96,16 @@ export function SiteNav() {
                 </button>
               </li>
             ))}
+            {competitionInfo.enabled && ( // COMPETENCIA TEMPORAL
+              <li>
+                <Link
+                  href={competitionInfo.href}
+                  className="text-foreground/65 hover:text-foreground px-1 py-2 text-sm font-medium transition-colors duration-300"
+                >
+                  {competitionInfo.title}
+                </Link>
+              </li>
+            )}
             <li>
               <Link
                 href="/fotos"
@@ -149,6 +160,22 @@ export function SiteNav() {
               </button>
             </li>
           ))}
+
+          {competitionInfo.enabled && ( // COMPETENCIA TEMPORAL
+            <li className="w-full max-w-xs">
+              <Link
+                href={competitionInfo.href}
+                onClick={() => setOpen(false)}
+                style={{ transitionDelay: open ? `${links.length * 60 + 80}ms` : '0ms' }}
+                className={cn(
+                  'border-border/30 hover:border-primary/40 hover:text-primary block w-full border-b py-5 text-center font-serif text-4xl font-medium transition-all duration-400 active:scale-[0.98]',
+                  open ? 'translate-y-0 opacity-100' : 'translate-y-5 opacity-0',
+                )}
+              >
+                {competitionInfo.title}
+              </Link>
+            </li>
+          )}
 
           <li className="w-full max-w-xs">
             <Link
