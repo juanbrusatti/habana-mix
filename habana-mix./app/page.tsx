@@ -4,6 +4,7 @@ import { EventsSection } from '@/components/events-section'
 import { Hero } from '@/components/hero'
 import { LocationSection } from '@/components/location-section'
 import { PhotosSection } from '@/components/photos-section'
+import { CompetitionInfoSection } from '@/components/competition-info-section' // COMPETENCIA TEMPORAL
 import { SiteFooter } from '@/components/site-footer'
 import { SiteNav } from '@/components/site-nav'
 import { isPastEvent } from '@/lib/event-format'
@@ -55,6 +56,7 @@ export default async function HomePage() {
       <Hero config={hero} nextEvent={nextEvent} live={live} />
       <main>
         <EventsSection events={sortedEvents} />
+        <CompetitionInfoSection /> {/* COMPETENCIA TEMPORAL */}
         <PhotosSection albums={albums} />
         <CompetitionsSection />
         <LocationSection config={location} />
