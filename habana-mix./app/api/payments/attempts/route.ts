@@ -4,7 +4,7 @@ import { getSupabaseAdmin } from '@/lib/supabase-admin'
 export async function POST(req: Request) {
   try {
     const body = await req.json()
-    const required = ['event_id', 'event_title', 'name', 'surname', 'dni', 'phone', 'email', 'amount']
+    const required = ['event_id', 'event_title', 'name', 'surname', 'phone', 'email', 'amount']
 
     for (const key of required) {
       if (!body[key] || typeof body[key] !== 'string') {
@@ -17,7 +17,6 @@ export async function POST(req: Request) {
       event_title: body.event_title as string,
       name: body.name as string,
       surname: body.surname as string,
-      dni: body.dni as string,
       phone: body.phone as string,
       email: body.email as string,
       amount: Number(body.amount),

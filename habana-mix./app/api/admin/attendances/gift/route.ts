@@ -12,18 +12,17 @@ export async function POST(request: Request) {
     if (!admin) return NextResponse.json({ error: 'Sesión no autorizada' }, { status: 401 })
 
     const body = await request.json()
-    const required = ['event_id', 'name', 'surname', 'dni', 'phone', 'email']
+    const required = ['event_id', 'name', 'surname', 'phone', 'email']
     if (required.some((key) => typeof body[key] !== 'string' || !body[key].trim())) return NextResponse.json({ error: 'Completá todos los campos' }, { status: 400 })
 
     const { data: event, error: eventError } = await supabaseAdmin.from('events').select('id, title, price_amount, price_currency').eq('id', body.event_id).maybeSingle()
     if (eventError) throw eventError
     if (!event) return NextResponse.json({ error: 'Evento no encontrado' }, { status: 404 })
 
-    const dni = body.dni.trim().toUpperCase()
     const phone = body.phone.trim().replace(/\D/g, '')
     const email = body.email.trim().toLowerCase()
-    const { data: duplicate } = await supabaseAdmin.from('attendances').select('id').eq('event_id', event.id).eq('payment_status', 'approved').or(`dni.eq.${dni},phone.eq.${phone},email.eq.${email}`).maybeSingle()
-    if (duplicate) return NextResponse.json({ error: 'DNI, teléfono o email ya usados en este evento' }, { status: 409 })
+    const { data: duplicate } = await supabaseAdmin.from('attendances').select('id').eq('event_id', event.id).eq('payment_status', 'approved').or(`phone.eq.${phone},email.eq.${email}`).maybeSingle()
+    if (duplicate) return NextResponse.json({ error: 'Teléfono o email ya usados en este evento' }, { status: 409 })
 
     const ticketCode = createTicketCode()
     const ticketToken = createTicketToken()
@@ -32,7 +31,6 @@ export async function POST(request: Request) {
       event_title: event.title,
       name: body.name.trim(),
       surname: body.surname.trim(),
-      dni,
       phone,
       email,
       is_free: false,
