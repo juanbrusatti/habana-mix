@@ -6,19 +6,19 @@ import { Label } from '@/components/ui/label'
 export interface AttendanceForm {
   name: string
   surname: string
-  dni: string
   phone: string
   email: string
+  emailConfirm: string
 }
 
-export type AttendanceFieldError = Partial<Record<'dni' | 'phone' | 'email', string>>
+export type AttendanceFieldError = Partial<Record<'phone' | 'email' | 'emailConfirm', string>>
 
 export const emptyAttendanceForm: AttendanceForm = {
   name: '',
   surname: '',
-  dni: '',
   phone: '',
   email: '',
+  emailConfirm: '',
 }
 
 /**
@@ -28,7 +28,6 @@ export const emptyAttendanceForm: AttendanceForm = {
 export function fieldErrorFromMessage(message: string): AttendanceFieldError {
   const normalized = message.toLowerCase()
   const next: AttendanceFieldError = {}
-  if (normalized.includes('dni')) next.dni = message
   if (normalized.includes('tel')) next.phone = message
   if (normalized.includes('email')) next.email = message
   return next
@@ -37,9 +36,9 @@ export function fieldErrorFromMessage(message: string): AttendanceFieldError {
 /**
  * Campos de la reserva, compartidos por el flujo gratuito y el pago.
  *
- * Pensados para el pulgar: alto de 48px, teclado numérico en DNI y teléfono,
- * autocompletado del navegador activado. Antes eran cinco inputs genéricos
- * apilados y en el celular obligaban a cambiar de teclado a mano.
+ * Pensados para el pulgar: alto de 48px, teclado numérico en teléfono,
+ * autocompletado del navegador activado. Incluye confirmación de email
+ * para reducir errores en el envío de la entrada.
  */
 export function AttendanceFields({
   form,
@@ -53,6 +52,9 @@ export function AttendanceFields({
   onChange: (field: keyof AttendanceForm, value: string) => void
 }) {
   const inputClass = 'h-12 text-base'
+
+  // Validación de coincidencia de emails
+  const emailMismatch = form.email && form.emailConfirm && form.email !== form.emailConfirm
 
   return (
     <div className="space-y-3.5">
@@ -81,22 +83,6 @@ export function AttendanceFields({
             onChange={(event) => onChange('surname', event.target.value)}
           />
         </div>
-      </div>
-
-      <div className="space-y-1.5">
-        <Label htmlFor="att-dni">DNI</Label>
-        <Input
-          id="att-dni"
-          className={inputClass}
-          required
-          inputMode="numeric"
-          autoComplete="off"
-          disabled={disabled}
-          value={form.dni}
-          aria-invalid={Boolean(errors.dni)}
-          onChange={(event) => onChange('dni', event.target.value)}
-        />
-        {errors.dni && <p className="text-destructive text-xs">{errors.dni}</p>}
       </div>
 
       <div className="space-y-1.5">
@@ -135,6 +121,26 @@ export function AttendanceFields({
           <p className="text-destructive text-xs">{errors.email}</p>
         ) : (
           <p className="text-muted-foreground text-xs">Acá te llega tu entrada con el QR.</p>
+        )}
+      </div>
+
+      <div className="space-y-1.5">
+        <Label htmlFor="att-email-confirm">Confirmar Email</Label>
+        <Input
+          id="att-email-confirm"
+          className={inputClass}
+          required
+          type="email"
+          inputMode="email"
+          autoComplete="email"
+          autoCapitalize="off"
+          disabled={disabled}
+          value={form.emailConfirm}
+          aria-invalid={emailMismatch}
+          onChange={(event) => onChange('emailConfirm', event.target.value)}
+        />
+        {emailMismatch && (
+          <p className="text-destructive text-xs">Los emails no coinciden</p>
         )}
       </div>
     </div>

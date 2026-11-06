@@ -93,7 +93,6 @@ export async function POST(req: Request) {
               event_title: order.event_title,
               name: order.name,
               surname: order.surname,
-              dni: order.dni,
               phone: order.phone,
               email: order.email,
               is_free: false,

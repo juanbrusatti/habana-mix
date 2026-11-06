@@ -42,7 +42,7 @@ export function FreeAttendanceDialog({
 
   const set = (field: keyof AttendanceForm, value: string) => {
     setForm((current) => ({ ...current, [field]: value }))
-    if (field === 'dni' || field === 'phone' || field === 'email') {
+    if (field === 'phone' || field === 'email' || field === 'emailConfirm') {
       setFieldError((current) => ({ ...current, [field]: undefined }))
     }
   }
@@ -53,6 +53,13 @@ export function FreeAttendanceDialog({
 
     if (Object.values(form).some((value) => !value.trim())) {
       toast.error('Completá todos los campos')
+      return
+    }
+
+    // Validar que los emails coincidan
+    if (form.email !== form.emailConfirm) {
+      toast.error('Los emails no coinciden')
+      setFieldError((current) => ({ ...current, emailConfirm: 'Los emails no coinciden' }))
       return
     }
 

@@ -3,24 +3,19 @@ import { supabase } from '@/lib/supabase'
 
 const normalizeText = (value: string) => value.trim()
 
-const normalizeDni = (value: string) => normalizeText(value).toUpperCase()
-
 const normalizePhone = (value: string) => normalizeText(value).replace(/\D/g, '')
 
 const normalizeEmail = (value: string) => normalizeText(value).toLowerCase()
 
-const duplicateMessages: Record<'dni' | 'telefono' | 'email', string> = {
-  dni: 'Este DNI ya fue registrado para este evento.',
+const duplicateMessages: Record<'telefono' | 'email', string> = {
   telefono: 'Este teléfono ya fue registrado para este evento.',
   email: 'Este email ya fue registrado para este evento.',
 }
 
-const findDuplicateField = (records: Array<{ dni: string; phone: string; email: string }>, payload: {
-  dni: string
+const findDuplicateField = (records: Array<{ phone: string; email: string }>, payload: {
   phone: string
   email: string
 }) => {
-  if (records.some((record) => record.dni === payload.dni)) return 'dni' as const
   if (records.some((record) => record.phone === payload.phone)) return 'telefono' as const
   if (records.some((record) => record.email === payload.email)) return 'email' as const
   return null
@@ -29,7 +24,7 @@ const findDuplicateField = (records: Array<{ dni: string; phone: string; email: 
 export async function POST(req: Request) {
   try {
     const body = await req.json()
-    const required = ['event_id', 'event_title', 'name', 'surname', 'dni', 'phone', 'email']
+    const required = ['event_id', 'event_title', 'name', 'surname', 'phone', 'email']
 
     for (const key of required) {
       if (!body[key] || typeof body[key] !== 'string') {
@@ -42,7 +37,6 @@ export async function POST(req: Request) {
       event_title: normalizeText(body.event_title),
       name: normalizeText(body.name),
       surname: normalizeText(body.surname),
-      dni: normalizeDni(body.dni),
       phone: normalizePhone(body.phone),
       email: normalizeEmail(body.email),
       is_free: true,
@@ -50,10 +44,10 @@ export async function POST(req: Request) {
 
     const { data: existing, error: existingError } = await supabase
       .from('attendances')
-      .select('dni, phone, email')
+      .select('phone, email')
       .eq('event_id', payload.event_id)
       .or(
-        `dni.eq.${payload.dni},phone.eq.${payload.phone},email.eq.${payload.email}`,
+        `phone.eq.${payload.phone},email.eq.${payload.email}`,
       )
 
     if (existingError) {

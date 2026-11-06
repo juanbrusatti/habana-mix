@@ -3,12 +3,10 @@ import { MercadoPagoConfig, Preference } from 'mercadopago'
 import { getSupabaseAdmin } from '@/lib/supabase-admin'
 
 const normalizeText = (value: string) => value.trim()
-const normalizeDni = (value: string) => normalizeText(value).toUpperCase()
 const normalizePhone = (value: string) => normalizeText(value).replace(/\D/g, '')
 const normalizeEmail = (value: string) => normalizeText(value).toLowerCase()
 
 const duplicateMessages = {
-  dni: 'Este DNI ya fue registrado para este evento.',
   phone: 'Este teléfono ya fue registrado para este evento.',
   email: 'Este email ya fue registrado para este evento.',
 } as const
@@ -19,7 +17,7 @@ export async function POST(req: Request) {
   try {
     const supabaseAdmin = getSupabaseAdmin()
     const body = await req.json()
-    const required = ['event_id', 'name', 'surname', 'dni', 'phone', 'email']
+    const required = ['event_id', 'name', 'surname', 'phone', 'email']
 
     for (const key of required) {
       if (!body[key] || typeof body[key] !== 'string') {
@@ -31,7 +29,6 @@ export async function POST(req: Request) {
       event_id: body.event_id as string,
       name: normalizeText(body.name),
       surname: normalizeText(body.surname),
-      dni: normalizeDni(body.dni),
       phone: normalizePhone(body.phone),
       email: normalizeEmail(body.email),
     }
@@ -49,20 +46,18 @@ export async function POST(req: Request) {
 
     const { data: duplicates, error: duplicateError } = await supabaseAdmin
       .from('attendances')
-      .select('dni, phone, email')
+      .select('phone, email')
       .eq('event_id', payload.event_id)
       .eq('payment_status', 'approved')
-      .or(`dni.eq.${payload.dni},phone.eq.${payload.phone},email.eq.${payload.email}`)
+      .or(`phone.eq.${payload.phone},email.eq.${payload.email}`)
 
     if (duplicateError) throw duplicateError
 
-    const duplicate = duplicates?.find((record) => record.dni === payload.dni)
-      ? 'dni'
-      : duplicates?.find((record) => record.phone === payload.phone)
-        ? 'phone'
-        : duplicates?.find((record) => record.email === payload.email)
-          ? 'email'
-          : null
+    const duplicate = duplicates?.find((record) => record.phone === payload.phone)
+      ? 'phone'
+      : duplicates?.find((record) => record.email === payload.email)
+        ? 'email'
+        : null
 
     if (duplicate) {
       return NextResponse.json({ error: duplicateMessages[duplicate] }, { status: 409 })
